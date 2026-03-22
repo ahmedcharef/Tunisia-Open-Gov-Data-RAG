@@ -1,0 +1,26 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+venv/
+.venv/
+env/
+.env
+pip-log.txt
+pip-delete-this-directory.txt
+
+# IDE / Editors
+.idea/
+.vscode/
+*.sublime-*
+
+# Chroma / vector DB
+chroma_db/
+*.chroma
+
+# Large data / caches
+data/*.large.*
+*.csv.backup
+*.parquet

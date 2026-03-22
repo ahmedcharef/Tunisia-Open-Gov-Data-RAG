@@ -1,0 +1,8 @@
+langchain>=0.3.0
+langchain-community
+langchain-chroma
+langchain-ollama
+langchain-huggingface
+python-dotenv
+sentence-transformers
+pypdf  # in case you later add PDF legislation
