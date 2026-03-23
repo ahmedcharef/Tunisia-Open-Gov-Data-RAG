@@ -1,0 +1,207 @@
+﻿_id,etablissement_code,university_code,label_ar,label_fr,website,gouvernorat,type,lat,lon
+1,1306,13,المعهد العالي للدراسات التكنولوجية بباجة,Institut Supérieur des Etudes Technologiques de Béja,isetbeja.wordpress.com,Béja,Public,36.73009993310565,9.202203885886496
+2,1321,13,المعهد العالي للدراسات التكنولوجية بنزرت,Institut Supérieur des Etudes Technologiques de Bizerte,isetbz.rnu.tn,Bizerte,Public,37.23572203211368,9.885430884234594
+3,1301,13,المعهد العالي للدراسات التكنولوجية بالشرقية,Institut Supérieur des Etudes Technologiques de Charguia,isetch.rnu.tn,Ariana,Public,36.85129121672034,10.211684906763454
+4,1316,13,المعهد العالي للدراسات التكنولوجية بقابس,Institut Supérieur des Etudes Technologiques de Gabès,isetgb.rnu.tn,Gabès,Public,33.86416397969313,10.102780125423761
+5,1319,13,المعهد العالي للدراسات التكنولوجية بقفصة,Institut Supérieur des Etudes Technologiques de Gafsa,isetgf.rnu.tn,Gafsa,Public,34.42990381420266,8.762775239332587
+6,1309,13,المعهد العالي للدراسات التكنولوجية بجندوبة,Institut Supérieur des Etudes Technologiques de Jendouba,isetj.rnu.tn,Jendouba,Public,36.50679001620653,8.759643719253052
+7,1308,13,المعهد العالي للدراسات التكنولوجية بجربة,Institut Supérieur des Etudes Technologiques de Jerba,isetjb.rnu.tn,Médenine,Public,33.81804187368521,10.973185459651953
+8,1303,13,المعهد العالي للدراسات التكنولوجية بالقيروان,Institut Supérieur des Etudes Technologiques de Kairouan,isetkr.rnu.tn,Kairouan,Public,35.598328181584,10.06347416748433
+9,1302,13,المعهد العالي للدراسات التكنولوجية بالقصرين,Institut Supérieur des Etudes Technologiques de Kasserine,isetks.rnu.tn,Kasserine,Public,35.16693941371468,8.779597519819408
+10,1317,13,المعهد العالي للدراسات التكنولوجية بقبلي,Institut Supérieur des Etudes Technologiques de Kebili,isetke.rnu.tn,Kébili,Public,33.733586474517814,8.986248612113236
+11,1325,13,المعهد العالي للدراسات التكنولوجية بقليبية,Institut Supérieur des Etudes Technologiques de Kélibia,isetkl.rnu.tn,Nabeul,Public,36.853181460933314,11.059341090106049
+12,1318,13,المعهد العالي للدراسات التكنولوجية بقصر هلال,Institut Supérieur des Etudes Technologiques de Ksar Hellal,isetkh.rnu.tn,Monastir,Public,35.652942763685864,10.889368890129157
+13,1305,13,المعهد العالي للدراسات التكنولوجية بالمهدية,Institut Supérieur des Etudes Technologiques de Mahdia,isetma.rnu.tn,Mahdia,Public,35.52275560773197,11.031277440961647
+14,1323,13,المعهد العالي للدراسات التكنولوجية مدنين,Institut Supérieur des Etudes Technologiques de Médenine,isetmd.rnu.tn,Médenine,Public,33.49740219213981,10.644278727626956
+15,1320,13,المعهد العالي للدراسات التكنولوجية بنابل,Institut Supérieur des Etudes Technologiques de Nabeul,isetn.rnu.tn,Nabeul,Public,36.43659337999381,10.676887663932606
+16,1310,13,المعهد العالي للدراسات التكنولوجية برادس,Institut Supérieur des Etudes Technologiques de Rades,isetr.rnu.tn,Ben Arous,Public,36.76059240115886,10.271036927743939
+17,1315,13,المعهد العالي للدراسات التكنولوجية بصفاقس,Institut Supérieur des Etudes Technologiques de Sfax,isetsf.rnu.tn,Sfax,Public,34.758311842969846,10.771355681149776
+18,1314,13,المعهد العالي للدراسات التكنولوجية بسيدي بوزيد,Institut Supérieur des Etudes Technologiques de Sidi Bouzid,isetsbz.rnu.tn,Sidi Bouzid,Public,35.029024107142035,9.458727220734803
+19,1312,13,المعهد العالي للدراسات التكنولوجية بسليانة,Institut Supérieur des Etudes Technologiques de Siliana,https://isetsl.rnu.tn/,Siliana,Public,36.076365235794896,9.38245622416482
+20,1313,13,المعهد العالي للدراسات التكنولوجية بسوسة,Institut Supérieur des Etudes Technologiques de Sousse,isetso.rnu.tn,Sousse,Public,35.802275038005796,10.614493652391715
+21,1307,13,المعهد العالي للدراسات التكنولوجية بتطاوين,Institut Supérieur des Etudes Technologiques de Tataouine,isetta.rnu.tn,Tataouine,Public,32.949939611003025,10.474754568359963
+22,1322,13,المعهد العالي للدراسات التكنولوجية توزر,Institut Supérieur des Etudes Technologiques de Tozeur,isett.rnu.tn,Tozeur,Public,33.91615448238502,8.08834607374582
+23,1311,13,المعهد العالي للدراسات التكنولوجية بزغوان,Institut Supérieur des Etudes Technologiques de Zaghouan,isetzg.rnu.tn,Zaghouan,Public,36.43364731443301,10.092293480901656
+24,1304,13,المعهد العالي للدراسات التكنولوجية بالكاف,Institut Supérieur des Etudes Technologiques du Kef,isetkf.rnu.tn,Le Kef,Public,36.12466456317538,8.724899951190796
+25,1324,13,المعهد العالي للدراسات التكنولوجية مواصلات,Institut Supérieur des Etudes Technologiques en Communications de Tunis,www.isetcom.tn,Ariana,Public,36.8910302576336,10.184364025642822
+26,422,4,المدرسة الوطنية للهندسة المعمارية والتعمير,Ecole Nationale d'Architecture et d'Urbanisme de Tunis,www.enau.rnu.tn,Tunis,Public,36.87274779508976,10.338539210885232
+27,433,4,المدرسة الوطنية للعلوم والتكنولوجيات المتقدمة ببرج السدرية,Ecole Nationale des Sciences et Technologies Avancées de Borj Cédria,www.enstab.rnu.tn,Nabeul,Public,36.70788156253631,10.427547288131262
+28,431,4,المدرسة الوطنية للمهندسين ببنزرت,Ecole Nationale d'Ingénieurs de Bizerte,enib.tn,Bizerte,Public,37.23499271996277,9.884640209679056
+29,428,4,المدرسة الوطنية للمهندسين بقرطاج,Ecole Nationale d'Ingénieurs de Carthage,enicarthage.rnu.tn,Ariana,Public,36.85181087235165,10.211349609953688
+30,430,4,المدرسة التونسية للتقنيات,Ecole Polytechnique de Tunisie,www.ept.rnu.tn,Tunis,Public,36.87946633179844,10.33640017641931
+31,425,4,المدرسـة العليا للفلاحــة بـماطـر,Ecole Supérieure d'Agriculture de Mateur,esamateur.agrinet.tn/index.php/fr/,Bizerte,Public,37.05205748305532,9.62125104012608
+32,424,4,المدرسـة العليا للفلاحـة بمقـرن,Ecole Supérieure d'Agriculture de Mograne,esamograne.agrinet.tn,Zaghouan,Public,36.426324228633604,10.095044093411246
+33,427,4,المدرسة العليا للسمعي البصري والسينما بقمرت,Ecole Supérieure de l'Audiovisuel et du Cinéma de Gammarth,www.esac.rnu.tn,Tunis,Public,36.8995872483749,10.312115608948105
+34,423,4,المدرسة العليا للمواصلات بتونس,Ecole Supérieure des Communications de Tunis,supcom.tn,Ariana,Public,36.89208150458829,10.18746280390686
+35,426,4,المـدرسة العليا للصناعات الغذائيــة بتونس,Ecole Supérieure des Industries Alimentaires de Tunis,esiat.agrinet.tn,Tunis,Public,36.83149658789578,10.188141620904872
+36,429,4,المدرسة العليا للإحصاء وتحليل المعلومات,Ecole Supérieure des Statistiques et d'Analyse de l'Information,essai.rnu.tn,Ariana,Public,36.85763989108804,10.209579677291128
+37,401,4,كلية العلــوم ببنزرت,Faculté des Sciences de Bizerte,www.fsb.rnu.tn,Bizerte,Public,37.268148693329046,9.879468541737548
+38,403,4,كلية العلوم الإقتصادية والتصرف بنابل,Faculté des Sciences Economiques et de Gestion de Nabeul,www.fsegn.rnu.tn,Nabeul,Public,36.43463442960473,10.6891382392328
+39,402,4,كلية العلوم القانونية والسياسية والاجتماعية بتونس,"Faculté des Sciences Juridiques, Politiques et Sociales de Tunis",www.fsjpst.rnu.tn,Tunis,Public,36.845506934796,10.187244342700723
+40,404,4,معهد الدراسات العليا التجارية بقرطاج,Institut des Hautes Etudes Commerciales de Carthage,www.ihec.rnu.tn,Tunis,Public,36.86284730119126,10.33733397110563
+41,406,4,المعهد الوطني للعلوم الفلاحية بتونس,Institut National Agronomique de Tunisie,inat.tn/fr,Tunis,Public,36.82788795140715,10.18082928720551
+42,407,4,المعهد الوطني للعلوم التطبيقية والتكنولوجيا,Institut National des Sciences Appliquées et de Technologie de Tunis,https://insat.rnu.tn/,Tunis,Public,36.84302664812697,10.197644056257516
+43,408,4,المعهد الوطني للشغل والدراسات الإجتماعية,Institut National du Travail et des Etudes Sociales de Tunis,intes.rnu.tn,Ariana,Public,36.85639850868952,10.205744804801416
+44,419,4,المعهد التحضيري للدراسات الهندسية ببنزرت,Institut Préparatoire aux Etudes d'Ingénieurs de Bizerte,ipeib.rnu.tn,Bizerte,Public,37.26448477230625,9.872892940519135
+45,418,4,المعهد التحضيري للدراسات الهندسية بنابل,Institut Préparatoire aux Etudes d'Ingénieurs de Nabeul,www.ipein.rnu.tn,Nabeul,Public,36.43733872003593,10.679065915822196
+46,420,4,المعهد التحضيري للدراسات العلمية والتقنية بالمرسى,Institut Préparatoire aux Etudes Scientifiques et techniques,www.ipest.rnu.tn,Tunis,Public,36.87305006920635,10.333993565193891
+47,415,4,المعهد العالي للتصرف ببنزرت,Institut Supérieur de Gestion de Bizerte,www.isccb.rnu.tn,Bizerte,Public,37.23626010125224,9.882473267614202
+48,413,4,المعهد العالي للصيد البحري وتربية الأحياء المائية,Institut Supérieur de Pêche et d'Aquaculture de Bizerte,ispab.agrinet.tn/index.php/ar/,Bizerte,Public,37.25411659046017,9.908906505562289
+49,409,4,المعهد العالي للفنون الجميلـة بنابـل,Institut Supérieur des Beaux Arts de Nabeul,www.isban.rnu.tn,Nabeul,Public,36.43513620928559,10.686595492422247
+50,421,4,المعهد العالي لإطارات الطفولـــــة بقرطاج درمش,Institut Supérieur des Cadres de l'Enfance Carthage Dermech,iscenf.rnu.tn,Tunis,Public,36.849092854271156,10.329059079839139
+51,414,4,المعهد العالي للدراسات التحضيرية في البيولوجيا و الجيولوجيا بسكرة,Institut Supérieur des Etudes Préparatoires en Biologie et Géologie à Soukra,www.isepbgsoukra.agrinet.tn,Ariana,Public,36.8815311394077,10.237643189709548
+52,405,4,معهد الدراسات السياحية العليا بسيدي الظريف,Institut Supérieur des Etudes Touristique de Sidi Dhrif,ihet.rnu.tn,Tunis,Public,36.876470160631555,10.342174046919782
+53,411,4,المعهد العالي للغات بنابل,Institut Supérieur des Langues de Nabeul,isln.rnu.tn,Nabeul,Public,36.44981352088084,10.724085198425344
+54,410,4,المعهد العالي للغات بتونس,Institut Supérieur des Langues de Tunis,www.islt.rnu.tn,Tunis,Public,36.83396422611153,10.19466087926597
+55,412,4,المعهد العالي للعلوم التطبيقية والتكنولوجيا بماطر,Institut Supérieur des Sciences Appliquées et de la Technologie de Mateur,www.issatm.rnu.tn,Bizerte,Public,37.046327055904705,9.64630524067979
+56,416,4,المعهد العالي لعلوم وتكنولوجيات البيئة ببرج السدرية,Institut Supérieur des Sciences et Technologies de l'Environnement de Borj Cédria,www.isste.rnu.tn,Nabeul,Public,36.70684835560544,10.429535245094579
+57,417,4,المعهد العالي لتكنولوجيات البيئة والعمران والبنيان,Institut Supérieur des Technologies de l’Environnement de l'Urbanisme et du Bâtiment,isteub.rnu.tn,Ariana,Public,36.85189365541197,10.210464545726015
+58,432,4,المعهد العالي لتكنولوجيات الإعلامية والإتصال ببرج السدرية,Institut Supérieur des Technologies de l'Information et de la Communication,www.istic.rnu.tn,Nabeul,Public,36.708113010172404,10.428539690514892
+59,1115,11,المدرسة الوطنية للمهندسين بقابس,Ecole Nationale d'Ingénieurs de Gabès,enig.rnu.tn,Gabès,Public,33.85135341593682,10.104287348417431
+60,1101,11,كلية العلوم بقابس,Faculté des Sciences de Gabès,fsg.rnu.tn,Gabès,Public,33.84696574761809,10.09702748600932
+61,1109,11,المعهد العالي للبيولوجيا التطبيقية بمدنين,Institut Supérieur de Biologie Appliquée de Medenine,isbam.rnu.tn,Médenine,Public,33.496164819633876,10.642059394025129
+62,1114,11,المعهد العالي للتصرف بقابس,Institut Supérieur de Gestion de Gabès,isggb.rnu.tn,Gabès,Public,33.88259891869319,10.089593048199445
+63,1103,11,المعهد العالي للفنون والحرف بقابس,Institut Supérieur des Arts et Métiers de Gabès,isamgb.rnu.tn,Gabès,Public,33.84638895281815,10.094887735004908
+64,1104,11,المعهد العالي للفنون والحرف بتطاوين,Institut Supérieur des Arts et Métiers de Tataouine,isamt.rnu.tn,Tataouine,Public,32.949799503431784,10.475218581019485
+65,1107,11,المعهد العالي للدراسات القانونية بقابس,Institut Supérieur des Etudes Juridiques de Gabès,isejg.rnu.tn,Gabès,Public,33.852036346820576,10.097058018637384
+66,1105,11,المعهد العالي للغات بقابس,Institut Supérieur des Langues de Gabès,islgb.rnu.tn,Gabès,Public,33.88581271014696,10.092261905003133
+67,1106,11,المعهد العالي للعلوم التطبيقية والتكنولوجيا بقابس,Institut Supérieur des Sciences Appliquées et de Technologie de Gabès,issatgb.rnu.tn,Gabès,Public,33.85026713937597,10.105531568621396
+68,1112,11,المعهد العالي لعلوم وتقنيات المياه بقابس,Institut Supérieur des Sciences et Techniques des Eaux de Gabès,isstegb.rnu.tn,Gabès,Public,33.850216126758255,10.0932982324951
+69,1108,11,المعهد العالي للعلوم الإنسانية بمدنين,Institut Supérieur des Sciences Humaines de Médenine,isshm.rnu.tn,Médenine,Public,33.341961132082616,10.503141201403025
+70,1113,11,المعهد العالي لعلوم التمريض بقابس,Institut Supérieur des Sciences Infirmières de Gabès,issig.tn,Gabès,Public,33.88076256425337,10.096896709221749
+71,1102,11,المعهد العالي للمنظومات الصناعية بقابس,Institut Supérieur des Systèmes Industriels de Gabès,issig.rnu.tn,Gabès,Public,33.84521562060112,10.096397187181456
+72,1111,11,المعهد العالي للإعلامية بمدنين,Institut Supérieur d'Informatique de Medenine,isim.rnu.tn,Médenine,Public,33.36774808310267,10.508393148359648
+73,1110,11,المعهد العالي للإعلامية والملتيميديا بقابس,Institut Supérieur d'Informatique et de Multimédia de Gabès,isimg.rnu.tn,Gabès,Public,33.84766806172932,10.094547622741976
+74,1210,12,المدرسة الوطنية للمهندسين بقفصة,Ecole Nationale d'Ingénieurs de Gafsa,eniga.rnu.tn,Gafsa,Public,34.42956065168908,8.76567596387697
+75,1201,12,كلية العلوم بقفصة,Faculté des Sciences de Gafsa,fsgf.rnu.tn,Gafsa,Public,34.42982177220428,8.764271988710924
+76,1209,12,المعهد التحضيري للدراسات الهندسية بقفصة,Institut Préparatoire aux Etudes d'Ingénieurs de Gafsa,ipeig.rnu.tn,Gafsa,Public,34.42960032360303,8.75600511107746
+77,1208,12,المعهد العالي لإدارة المؤسسات بقفصة,Institut Supérieur d'Administration des Entreprises de Gafsa,isaeg.rnu.tn,Gafsa,Public,34.42465689864663,8.757842945234412
+78,1202,12,المعهد العالي للفنون والحرف بقفصة,Institut Supérieur des Arts et Métiers de Gafsa,isamgf.rnu.tn,Gafsa,Public,34.423443809340355,8.758085330908282
+79,1205,12,المعهد العالي للدراسات التطبيقية في الإنسانيات بقفصة,Institut Supérieur des Etudes Appliquées en Humanités de Gafsa,iseahgf.rnu.tn,Gafsa,Public,34.425906780563096,8.77713385994997
+80,1206,12,المعهد العالي للدراسات التطبيقية في الإنسانيات بتوزر,Institut Supérieur des Etudes Appliquées en Humanités de Tozeur,iseahtz.rnu.tn,Tozeur,Public,33.91674618831093,8.088259348864755
+81,1203,12,المعهد العالي للعلوم التطبيقية والتكنولوجيا بققصة,Institut Supérieur des Sciences Appliquées et de Technologie de Gafsa,issatgf.rnu.tn,Gafsa,Public,34.43719132509519,8.745211322145801
+82,1207,12,المعهد العالي لعلوم وتكنولوجيا الطاقة بقفصة,Institut Supérieur des Sciences et des Technologies de l'Energie de Gafsa,"",Gafsa,Public,34.422522125288836,8.745323397495904
+83,1204,12,المعهد العالي للرياضة والتربية البدنية بقفصة,Institut Supérieur du Sport et de l'Education Physique de Gafsa,issepgf.rnu.tn,Gafsa,Public,34.42333012728726,8.763114675189707
+84,612,6,المدرسة العليا للفلاحة بالكاف,Ecole Supérieure d'Agriculture du Kef,esakef.agrinet.tn,Le Kef,Public,36.121378371382605,8.719752522585699
+85,613,6,المدرسة العليا للمهندسين بمجاز الباب,Ecole Supérieure des Ingénieurs de Medjez El Bab,esier.agrinet.tn,Béja,Public,36.621495783107086,9.561479170152651
+86,601,6,كلية العلوم القانونية والإقتصادية والتصرف بجندوبة,"Faculté des Sciences Juridiques, Economiques et de Gestion de Jendouba",www.fsjegj.rnu.tn,Jendouba,Public,36.50832044938573,8.76145216356464
+87,614,6,المعهد الوطني للتكنولوجيا والعلوم بالكاف,Institut National des Technologies et des Sciences du Kef,"",Jendouba,Public,36.17813247965729,8.710772479167591
+88,608,6,المعهد العالي للبيوتكنولوجيا بباجة,Institut Supérieur de Biotechnologie de Béja,www.isbb.rnu.tn,Béja,Public,36.718591762196425,9.1795038363003
+89,609,6,المعهد العالي للإعلامية بالكاف,Institut Supérieur de l'Informatique du Kef,www.isikef.rnu.tn,Le Kef,Public,36.17834078813045,8.710288414400305
+90,603,6,المعهد العالي للموسيقى والمسرح بالكاف,Institut Supérieur de Musique et de Théâtre du Kef,www.istmk.rnu.tn,Le Kef,Public,36.179916711237226,8.717834145965927
+91,604,6,المعهد العالي للفنون والحرف بسليانة,Institut Supérieur des Arts et Métiers de Siliana,www.isamsl.rnu.tn,Siliana,Public,36.08375519538907,9.368330951644635
+92,607,6,المعهد العالي للدراسات التطبيقية في الإنسانيات بالكاف,Institut Supérieur des Etudes Appliquées en Humanités du Kef,www.iseahkf.rnu.tn,Le Kef,Public,36.18186889892116,8.724286338670101
+93,605,6,المعهد العالي للغات التطبيقية والإعلامية بباجة,Institut Supérieur des Langues Appliquées et Informatique de Béja,www.islaib.rnu.tn,Béja,Public,36.729189202062884,9.201833917844851
+94,606,6,المعهد العالي للعلوم الإنسانية بجندوبة,Institut Supérieur des Sciences Humaines de Jendouba,www.isshj.rnu.tn,Jendouba,Public,36.510339371190334,8.760811586265046
+95,610,6,المعهد العالي لعلوم التمريض بالكاف,Institut Supérieur des Sciences Infirmières de Kef,issikf.rnu.tn,Le Kef,Public,36.176573732511486,8.704001608925154
+96,611,6,المعهد العالي للرياضة والتربية البدنية بالكاف,Institut Supérieur du Sport et de l’Education Physique du Kef,issepk.rnu.tn/Fr/nous-contacter_10_18,Le Kef,Public,36.121710752254096,8.71972580096017
+97,602,6,معهد الغابات والمراعي بطبرقة,Institut Sylvo-Pastoral de Tabarka,isptabarka.agrinet.tn/index.php/fr/,Jendouba,Public,36.92889558267683,8.791242180787632
+98,901,9,كلية الآداب والعلوم الإنسانية بالقيروان,Faculté des Lettres et des Sciences Humaines de Kairouan,flshk.rnu.tn,Kairouan,Public,35.60043330129344,10.064525149558415
+99,911,9,كلية العلوم والتقنيات بسيدي بوزيد,Faculté des Sciences et Techniques de Sidi Bouzid,fstsbz.rnu.tn,Sidi Bouzid,Public,35.01486168516771,9.485636584538845
+100,912,9,المعهد التحضيري للدراسات الهندسية بالقيروان,Institut Préparatoire aux Etudes d'Ingénieurs de Kairouan,ipeik.rnu.tn,Kairouan,Public,35.6752334702944,10.105432738944437
+101,902,9,المعهد العالي للفنون والحرف بالقيروان,Institut Supérieur des Arts et Métiers de Kairouan,isamk.rnu.tn,Kairouan,Public,35.674238404853355,10.102475414716542
+102,903,9,المعهد العالي للفنون والحرف بالقصرين,Institut Supérieur des Arts et Métiers de Kasserine,isamkas.rnu.tn,Kasserine,Public,35.176453521001186,8.849374288603986
+103,909,9,المعهد العالي للفنون والحرف بسيدي بوزيد,Institut Supérieur des Arts et Métiers de Sidi Bouzid,isamsb.rnu.tn,Sidi Bouzid,Public,35.03298457408269,9.473779323856636
+104,907,9,المعهد العالي للدراسات التطبيقية في الإنسانيات بسبيطلة,Institut Supérieur des Etudes Appliquées en Sciences Humaines de Sbeïtla,iseahs.rnu.tn,Kasserine,Public,35.24723510338917,9.108112113811353
+105,906,9,المعهد العالي للدراسات القانونية والسياسية بالقيروان,Institut Supérieur des Etudes Juridiques et Politiques de Kairouan,isejpk.rnu.tn,Kairouan,Public,35.68174294315908,10.10004764105004
+106,905,9,المعهد العالي للرياضيات التطبيقية والإعلامية بالقيروان,Institut Supérieur des Mathématiques Appliquées et de l'Informatique de Kairouan,ismaik.rnu.tn,Kairouan,Public,35.675255232495196,10.105435650549921
+107,904,9,المعهد العالي للعلوم التطبيقية والتكنولوجيا بالقيروان,Institut Supérieur des Sciences Appliquées et de Technologie de Kairouan,issatkr.rnu.tn,Kairouan,Public,35.691139456231404,10.076441508409138
+108,910,9,المعهد العالي للعلوم التطبيقية والتكنولوجيا بالقصرين,Institut Supérieur des Sciences Appliquées et de Technologie de Kasserine,issatkas.rnu.tn,Kasserine,Public,35.16698629465678,8.778655525599591
+109,908,9,المعهد العالي للإعلامية والتصرف بالقيروان,Institut Supérieur d'Informatique et de Gestion de Kairouan,isigk.rnu.tn,Kairouan,Public,35.67620990575683,10.10534624748415
+110,509,5,المدرسة الوطنية للطب البيطري بسيدي ثابت,Ecole Nationale de Médecine Vétérinaire de Sidi Thabet,enmv.agrinet.tn,Ariana,Public,36.91095724254412,10.04809756928227
+111,510,5,المدرسة الوطنية لعلوم الإعلامية,Ecole Nationale des Sciences de l'Informatique,https://ensi.rnu.tn/,La Mannouba,Public,36.81336509494683,10.063482448198059
+112,511,5,المدرسة العليا للتجارة بمنوبة,Ecole Supérieure de Commerce de Tunis,https://esct.rnu.tn/,La Mannouba,Public,36.813614141053925,10.06211309769657
+113,512,5,المدرسة العليا للإقتصاد الرقمي بمنوبة,Ecole Supérieure d'Economie Numérique,"",La Mannouba,Public,36.807408826488434,10.073081808245908
+114,513,5,المدرسة العليا لعلوم وتكنولوجيات التصميم,Ecole Supérieure des Sciences et Technologies du Design,essted.rnu.tn,La Mannouba,Public,36.80289916461998,10.117035064005215
+115,501,5,كلية الآداب والفنون والإنسانيات بمنوبة,"Faculté des Lettres, des Arts et des Humanités de la Manouba",https://flm.rnu.tn/,La Mannouba,Public,36.8118593590518,10.064957562143636
+116,502,5,معهد الصحافة وعلوم الإخبار,Institut de Presse et des Sciences de l'Information,https://ipsi.rnu.tn/,La Mannouba,Public,36.81083280790823,10.068030692423516
+117,504,5,المعهد العالي للبيوتكنولوجيا بسيدي ثابت,Institut Supérieur de Biotechnologie de Sidi Thabet,https://isbst.rnu.tn/,La Mannouba,Public,36.91675888203254,10.08472063157696
+118,506,5,المعهد العالي للمحاسبة وإدارة المؤسسات,Institut Supérieur de Comptabilité et d'Administration des Entreprises de Manouba,www.iscae.rnu.tn,La Mannouba,Public,36.81457127127382,10.060849802160252
+119,508,5,المعهد العالي للتوثيق,Institut Supérieur de Documentation de Tunis,www.isd.rnu.tn,La Mannouba,Public,36.81058459789056,10.068480583371395
+120,503,5,المعهد العالي للتربية المختصة,Institut Supérieur de l’Education Spécialisée,ises.rnu.tn,La Mannouba,Public,36.81253916217798,10.100871749404858
+121,505,5,المعهد العالي لفنون الملتيميديا,Institut Supérieur des Arts du Multimédia de la Manouba,www.isa2m.rnu.tn,La Mannouba,Public,36.81649609165054,10.06095770861293
+122,507,5,المعهد العالي للرياضة والتربية البدنية بقصر السعيد,Institut Supérieur du Sport et de l'Education Physique de Ksar Saïd,issep-ks.rnu.tn,La Mannouba,Public,36.81560847148554,10.10547164143108
+123,815,8,المدرسة الوطنية للمهندسين بالمنستير,Ecole Nationale d'Ingénieurs de Monastir,enim.rnu.tn,Monastir,Public,35.76499221953632,10.802917060898446
+124,816,8,المدرسة العلـيـا لعلوم وتقـنـيات الصـحـة بالمنـسـتـير,Ecole Supérieure des Sciences et Techniques de la Santé de Monastir,esstsm.tn/public/,Monastir,Public,35.767266221293724,10.834376127469344
+125,803,8,كلية الطب بالمنستير,Faculté de Médecine de Monastir,fmm.tn,Monastir,Public,35.767102058164156,10.833279107466927
+126,805,8,كلية طب الأسنان,Faculté de Médecine Dentaire de Monastir,fmdm.rnu.tn,Monastir,Public,35.76406523698792,10.827724531066297
+127,804,8,كلية الصيدلة بالمنستير,Faculté de Pharmacie de Monastir,fphm.rnu.tn,Monastir,Public,35.76541932433172,10.829376684151772
+128,801,8,كلية العلوم بالمنستير,Faculté des Sciences de Monastir,fsm.rnu.tn,Monastir,Public,35.76364415948927,10.805460248448972
+129,802,8,كلية العلوم الاقتصادية والتصرف بالمهدية,Faculté des Sciences Economiques et de Gestion de Mahdia,fsegma.rnu.tn,Mahdia,Public,35.521481113395865,11.03078095773148
+130,814,8,المعهد التحضيري للدراسات الهندسية بالمنستير,Institut Préparatoire aux Etudes d'Ingénieurs de Monastir,ipeim.rnu.tn,Monastir,Public,35.76532941088168,10.802610616289789
+131,811,8,المعهد العالي للبيوتكنولوجيا بالمنستير,Institut Supérieur de Biotechnologie de Monastir,isbm.rnu.tn,Monastir,Public,35.76271935402507,10.830121379884414
+132,806,8,المعهد العالي لمهن الموضة بالمنستير,Institut Supérieur de la Mode de Monastir,ismmm.rnu.tn,Monastir,Public,35.76710391471817,10.841475766021075
+133,807,8,المعهد العالي لللفنون والحرف بالمهدية,Institut Supérieur des Arts et Métiers de Mahdia,isammh.rnu.tn,Mahdia,Public,35.50222315318507,11.065108495943313
+134,810,8,المعهد العالي للدراسات التطبيقية في الإنسانيات بالمهدية,Institut Supérieur des Etudes Appliquées en Humanités de Mahdia,iseahm.rnu.tn,Mahdia,Public,35.4785799563542,11.052346059060397
+135,808,8,المعهد العالي للغات المطبقة بالمكنين,Institut Supérieur des Langues Appliquées de Moknine,islaatm.rnu.tn,Monastir,Public,35.62745177330968,10.895372834958193
+136,809,8,المعهد العالي للعلوم التطبيقية والتكنولوجيا بالمهدية,Institut Supérieur des Sciences Appliquées et de Technologie de Mahdia,issatmh.rnu.tn,Mahdia,Public,35.4780823011109,11.052260725456925
+137,813,8,المعهد العالي للإعلامية بالمهدية,Institut Supérieur d'Informatique de Mahdia,isima.rnu.tn,Mahdia,Public,35.524267785262495,11.030849743584147
+138,812,8,المعهد العالي للإعلامية والرياضيات بالمنستير,Institut Supérieur d'Informatique et de Mathématiques de Monastir,isimm.rnu.tn,Monastir,Public,35.764344776123245,10.841211866065374
+139,1011,10,المدرسة الوطنية للإلكترونيك والإتصالات بصفاقس,Ecole Nationale d'Electronique et des Télécommunications de Sfax,enetcom.rnu.tn,Sfax,Public,34.83834705484686,10.755237751154093
+140,1017,10,المدرسة الوطنية للمهندسين بصفاقس,Ecole Nationale d'Ingénieurs de Sfax,enis.rnu.tn,Sfax,Public,34.725233906831335,10.718041582579742
+141,1018,10,المدرسـة العليـا للتجارة بصفاقس,Ecole Supérieure de Commerce de Sfax,escs.rnu.tn,Sfax,Public,34.7336294807743,10.709180432852216
+142,1019,10,المدرسة العليا لعلوم وتقنيات الصحة بصفاقس,Ecole Supérieure des Sciences et Techniques de la Santé de Sfax,"",Sfax,Public,34.734200265938995,10.70525767361427
+143,1004,10,كليـة الحقـوق بصفاقـس,Faculté de Droit de Sfax,fdsf.rnu.tn,Sfax,Public,34.793203127581606,10.838664793482684
+144,1005,10,كلية الطب بصفاقس,Faculté de Médecine de Sfax,medecinesfax.org,Sfax,Public,34.73809744532428,10.750706886640202
+145,1003,10,كلية الآداب والعلوم الإنسانية بصفاقس,Faculté des Lettres et Sciences Humaines de Sfax,flshs.rnu.tn,Sfax,Public,34.73432987905602,10.702772620233052
+146,1001,10,كلية العلوم بصفاقس,Faculté des Sciences de Sfax,fss.rnu.tn,Sfax,Public,34.728004972299864,10.718782903530478
+147,1002,10,كلية العلوم الإقتصادية والتصرف بصفاقس,Faculté des Sciences Economiques et de Gestion de Sfax,fsegs.rnu.tn,Sfax,Public,34.73359990470372,10.710172988779556
+148,1006,10,معهد الدراسات العليا التجارية بصفاقس,Institut des Hautes Etudes Commerciales de Sfax,ihecsf.rnu.tn,Sfax,Public,34.794110229191624,10.836636290542263
+149,1015,10,المعهد التحضيري للدراسات الهندسية بصفاقس,Institut Préparatoire aux Etudes d'Ingénieurs de Sfax,ipeis.rnu.tn,Sfax,Public,34.737441646060766,10.748793242415168
+150,1014,10,المعهد العالي لإدارة الأعمال بصفاقس,Institut Supérieur d'Administration des Affaires de Sfax,isaas.rnu.tn,Sfax,Public,34.73547426451344,10.711704981465555
+151,1010,10,المعهد العالي للبيوتكنولوجيا بصفاقس,Institut Supérieur de Biotechnologie de Sfax,isbs.rnu.tn,Sfax,Public,34.72405565459974,10.718935288413087
+152,1009,10,المعهد العالي للتصرف الصناعي بصفاقس,Institut Supérieur de Gestion Industrielle de Sfax,isgis.rnu.tn,Sfax,Public,34.83847139939949,10.753491616729736
+153,1007,10,المعهد العالي للموسيقى بصفاقس,Institut Supérieur de Musique de Sfax,ismsf.rnu.tn,Sfax,Public,34.83576670505437,10.753281680602203
+154,1008,10,المعهد العالي للفنون والحرف بصفاقس,Institut Supérieur des Arts et Métiers de Sfax,isams.rnu.tn,Sfax,Public,34.747838806480765,10.761832646880315
+155,1013,10,المعهد العالي لعلوم التمريض بصفاقس,Institut Supérieur des Sciences Infirmières de Sfax,"",Sfax,Public,34.73802913066235,10.749167
+156,1012,10,المعهد العالي للإعلامية والملتيميديا بصفاقس,Institut Supérieur d'Informatique et de Multimédia de Sfax,isimsf.rnu.tn,Sfax,Public,34.84003001925982,10.75727073883884
+157,1016,10,المعهد العالي للرياضة والتربية البدنية بصفاقس,Institut Supérieur du Sport et de l'Education Physique de Sfax,"",Sfax,Public,34.731694838177766,10.713302542329245
+158,714,7,المدرسة الوطنية للمهندسين بسوسة,Ecole Nationale d’Ingénieurs de Sousse,eniso.rnu.tn,Sousse,Public,35.81997712878277,10.593317057775582
+159,715,7,المدرسة العليا للعلوم والتكنولوجيا بحمام سوسة,Ecole Supérieure des Sciences et des Technologies de Hammam Sousse,essths.rnu.tn,Sousse,Public,35.85019402851186,10.597925056623875
+160,716,7,المدرسة العليا لعلوم وتقنيات الصحة بسـوسة,Ecole Supérieure des Sciences et Techniques de la Santé de Sousse,esstssousse.tn,Sousse,Public,35.83922686574052,10.589882568801979
+161,717,7,كلية الحقوق والعلوم السياسية بسوسة,Faculté de Droit et et des Sciences Politiques de Sousse,http://www.fdsps.rnu.tn/,Sousse,Public,35.805770939389475,10.611961318247857
+162,703,7,كلية الطب بسوسة,Faculté de Médecine de Sousse,www.medecinesousse.com,Sousse,Public,35.828526979457855,10.625715821364988
+163,702,7,كلية الآداب والعلوم الإنسانية بسوسة,Faculté des Lettres et des Sciences Humaines de Sousse,fls.rnu.tn,Sousse,Public,35.801222542405064,10.61601818330712
+164,718,7,كلية العلوم الإقتصادية والتصرف بسوسة,Faculté des Sciences Economiques et de Gestion de Sousse,fsegso.rnu.tn,Sousse,Public,35.7999493804612,10.617989313511014
+165,704,7,معهد الدراسات العليا التجارية بسوسة,Institut des Hautes Etudes Commerciales de Sousse,ihecso.rnu.tn,Sousse,Public,35.831694680368216,10.590605717104811
+166,713,7,المعهد العالي للعلوم الفلاحية بشط مريم,Institut Supérieur Agronomique de Chott Mériem,isa-cm.agrinet.tn,Sousse,Public,35.91977888183557,10.566205203178754
+167,707,7,المعهد العالي للمالية والجباية بسوسة,Institut Supérieur de Finances et de Fiscalité de Sousse,isffs.rnu.tn,Sousse,Public,35.81993969581127,10.636354518162369
+168,710,7,المعهد العالي للتصرف بسوسة,Institut Supérieur de Gestion de Sousse,isgs.rnu.tn,Sousse,Public,35.81407543911409,10.62553085494109
+169,706,7,المعهد العـالي للـموسيـقى بسوسة,Institut Supérieur de Musique de Sousse,isms.tn,Sousse,Public,35.81994804076276,10.635548071784548
+170,708,7,المعهد العالي للفنون الجميلة بسوسة,Institut Supérieur des Beaux Arts de Sousse,isbas.rnu.tn,Sousse,Public,35.831136252402686,10.6388496432921
+171,709,7,المعهد العالي للعلوم التطبيقية والتكنولوجيا بسوسة,Institut Supérieur des Sciences Appliquées et de Technologie de Sousse,issatso.rnu.tn,Sousse,Public,35.81190247595861,10.637120257065588
+172,712,7,المعهد العالي لعلوم التمريض بسوسة,Institut Supérieur des Sciences Infirmières de Sousse,sciencesinfirmieres-sousse.tn/public/,Sousse,Public,35.8278487153256,10.624847422089696
+173,711,7,المعهد العالي للإعلامية وتقنيات الإتصال بحمام سوسة,Institut Supérieur d'Informatique et des Technologies de Communication de Hammam Sousse,isitcom.rnu.tn,Sousse,Public,35.85794683350204,10.59916560207576
+174,705,7,المعهد العالي للنقل وخدمات الإتصال بسوسة,Institut Supérieur du Transport et de la Logistique de Sousse,istls.rnu.tn,Sousse,Public,35.798775732354876,10.61598819931827
+175,212,2,المدرسة الوطنية العليا للمهندسين بتونس,Ecole Nationale Supérieure d'Ingénieurs de Tunis,www.ensit.tn,Tunis,Public,36.784612890454795,10.17937637326426
+176,214,2,دار المعلمين العليا,Ecole Normale Supérieure,www.ens.rnu.tn,Tunis,Public,36.79077197510855,10.168702432907029
+177,213,2,المدرسة العليا للعلوم الإقتصادية والتجارية بتونس,Ecole Supérieure des Sciences Economiques et Commerciales de Tunis,www.essect.rnu.tn,Tunis,Public,36.78716734561937,10.174311765716011
+178,201,2,كلية العلوم الإنسانية والإجتماعية بتونس,Faculté des Sciences Humaines et Sociales de Tunis,www.fshst.rnu.tn,Tunis,Public,36.79567238507198,10.163393417456419
+179,209,2,المعهد التحضيري للدراسات الهندسية بتونس,Institut Préparatoire aux Etudes d'Ingénieurs de Tunis,www.ipeit.rnu.tn,Tunis,Public,36.78535636493706,10.171203607369236
+180,210,2,المعهد التحضيري للدراسات الأدبية و العلوم الإنسانية بتونس,Institut Préparatoire aux Etudes Littéraires et des Sciences Humaines de Tunis,www.ipelsht.rnu.tn,Tunis,Public,36.790220220990946,10.16755916894899
+181,205,2,المعهد العالي للفن المسرحي,Institut Supérieur d'Art Dramatique de Tunis,"",Tunis,Public,36.815065783921064,10.1668648
+182,211,2,المعهد العالي للتصرف بتونس,Institut Supérieur de Gestion de Tunis,www.isg.rnu.tn,Tunis,Public,36.80444873263701,10.150561065975129
+183,208,2,المعهد العالي للتنشيط الشبابي والثقافي ببئر الباي,Institut Supérieur de l'Animation pour la Jeunesse et la Culture de Bir El Bey,www.isajc.rnu.tn,Ben Arous,Public,36.717645510065715,10.377373594787201
+184,203,2,المعهد العالي للموسيقى بتونس,Institut Supérieur de Musique de Tunis,www.ismt.rnu.tn,Tunis,Public,36.80148205262928,10.180993988908002
+185,204,2,المعهد العالي للفنون الجميلة بتونس,Institut Supérieur des Beaux Arts de Tunis,www.isbat.rnu.tn,Tunis,Public,36.81095727812382,10.163123807029512
+186,207,2,المعهد العالي للدراسات التطبيقية في الإنسانيات بتونس,Institut Supérieur des Etudes Appliquées en Humanité de Tunis,www.iseaht.rnu.tn,Tunis,Public,36.806164831040924,10.156706890344095
+187,206,2,المعهد العالي للدراسات التطبيقية في الإنسانيات بزغوان,Institut Supérieur des Études Appliquées en Humanités de Zaghouan,www.iseahz.rnu.tn,Zaghouan,Public,36.43381977325008,10.090502803475578
+188,202,2,المعهد العالي لمهن التراث بتونس,Institut Supérieur des Métiers du Patrimoine de Tunis,www.ismpt.rnu.tn,Tunis,Public,36.78625504566702,10.172570338964604
+189,215,2,المعهد العالي للأعمال بتونس,Tunis Business School,www.utunis.rnu.tn,Ben Arous,Public,36.72010512789444,10.234829266813852
+190,311,3,المدرسة الوطنية للمهندسين بتونس,Ecole Nationale d'Ingénieurs de Tunis,www.enit.rnu.tn,Tunis,Public,36.831126491867,10.147739596348062
+191,312,3,المـدرسـة العلـيا لعلوم وتقنيات الصحة بتونس,Ecole Supérieure des Sciences et Techniques de la Santé de Tunis,esstst.wixsite.com/home,Tunis,Public,36.80042094669575,10.156233606382647
+192,303,3,كلية الحقوق والعلوم السياسية بتونس,Faculté de Droit et des Sciences Politiques de Tunis,www.fdspt.rnu.tn,Tunis,Public,36.83172834494407,10.150676652196909
+193,304,3,كلية الطب بتونس,Faculté de Médecine de Tunis,www.fmt.rnu.tn,Tunis,Public,36.80334951985015,10.15778421926507
+194,302,3,كلية العلوم الإقتصادية والتصرف بتونس,Faculté des Sciences Economiques et de Gestion de Tunis,www.fsegt.rnu.tn,Tunis,Public,36.8324969093717,10.150352104917681
+195,301,3,كلية العلوم للرياضيات والفيزياء والطبيعيات بتونس,Faculté des Sciences Mathématiques Physiques et Naturelles de Tunis,www.fst.rnu.tn,Tunis,Public,36.83384765120928,10.14787118803233
+196,310,3,المعهد التحضيري للدراسات الهندسية بالمنار,Institut Préparatoire aux Etudes d'Ingénieurs d'El Manar,www.ipeiem.rnu.tn,Tunis,Public,36.82935051509854,10.142825625298432
+197,305,3,المعهد العالي للعلوم البيولوجية التطبيقية بتونس,Institut Supérieur des Sciences Biologiques Appliquées de Tunis,www.issbat.rnu.tn,Tunis,Public,36.802340914490834,10.160075858019056
+198,306,3,المعهد العالي للعلوم الإنسانية بتونس,Institut Supérieur des Sciences Humaines de Tunis,www.issht.rnu.tn,Tunis,Public,36.79980656829746,10.161348650868986
+199,309,3,المعهد العالي لعلوم التمريض بتونس,Institut Supérieur des Sciences Infirmières de Tunis,www.issit.tn,Tunis,Public,36.800663883835234,10.155883785210797
+200,307,3,المعهد العالي للتكنولوجيات الطبية بتونس,Institut Supérieur des Technologies Médicales de Tunis,www.istmt.rnu.tn,Tunis,Public,36.80096122710459,10.160546557537437
+201,308,3,المعهد العالي للإعلامية المنار,Institut Supérieur d'Informatique,isi.rnu.tn,Ariana,Public,36.86165576270831,10.188740967219918
+202,102,1,المعهد العالي للحضارة الإسلامية,Institut Supérieur de la Civilisation Islamique de Tunis,www.isci.rnu.tn,Tunis,Public,36.792622796556905,10.164634157020718
+203,101,1,المعهد العالي لأصول الدين,Institut Supérieur de Théologie de Tunis,www.isth.rnu.tn,Tunis,Public,36.79360062847284,10.164656693984291
+204,103,1,المعهد العالي للخطابة والارشاد الديني بالقيروان,Institut Supérieur des Sciences Islamiques de Kairouan,"",Kairouan,Public,35.650584086311696,10.084753284045048
+205,1502,15,المعهد العالي للتربية و التكوين المستمر,Institut Supérieur de l'Education et de la Formation Continue,www.isefc.rnu.tn,Tunis,Public,36.80514135490817,10.150274616796485
+206,1501,15,الجامعة الافتراضية,Université Virtuelle,uvt.rnu.tn,Tunis,Public,36.81752054394514,10.185049199791287

@@ -12,32 +12,19 @@
 
 ## ✨ Features
 
-- Ingestion of Tunisian open government CSV datasets (RGPH 2014 census recommended)
+- Ingestion of Tunisian open government CSV datasets about **education establishments**
 - Multilingual embedding model that handles **Arabic + French** very well
 - Persistent Chroma vector database
 - Conversational RAG chain with history awareness
-- Easy model switching via OpenRouter (Qwen, Llama 3.3, Mistral Magistral, Claude, Gemini, …)
+- Easy model switching via OpenRouter (Qwen, Llama 3.3, Mistral, Claude, Gemini, …)
 - Local fallback to Ollama possible
 - Clean separation: ingestion / querying / configuration
-
-## 📊 Recommended Dataset
-
-**Recensement Général de la Population et de l'Habitat 2014 (RGPH 2014)**  
-→ <https://catalog.data.gov.tn/fr/dataset/41242bb8-7580-441d-8a93-1e9d190019ff>
-
-Why this dataset?
-
-- Structured CSV files (one per governorate / theme / commune possible)
-- Rich demographic, housing, urban/rural statistics
-- Real Tunisian government open data → multilingual metadata & content
-- Perfect size for local vector database experiments
 
 ## 🏗️ Project Structure
 
 ```text
 tunisia-rag/
 ├── data/                    # Put downloaded CSVs here
-│   └── recensement_population.csv   (example)
 ├── chroma_db/               # Persistent Chroma vector store (git ignored)
 ├── .env                     # API keys (git ignored)
 ├── requirements.txt
@@ -92,25 +79,38 @@ copy and edit .env and add llm that you need it
 cp .env.example .env
 ```
 
-### 4. Download Tunisian Open Government Data
+### 4. Download Tunisian Open Government Data (Education)
 
-Visit the RGPH 2014 dataset page:
-<https://catalog.data.gov.tn/fr/dataset/41242bb8-7580-441d-8a93-1e9d190019ff>
+You are currently using the following datasets:
 
-Download one or more CSV files from the available resources
-(population by governorate, age groups, urban/rural distribution, etc.)
+- **Établissements publics d'enseignement supérieur en Tunisie**  
+- **Les Universités Étatiques Publiques en Tunisie**  
+- **Liste des établissements scolaires privés**  
+- **Liste des établissements scolaires publics**
 
-Place the downloaded CSV file(s) into the data/ folder in the project root.
+These files are already in your `data/` folder.
 
-Example structure after placing files:
+**Alternative / additional sources** (if you want to expand later):
+
+- <https://catalog.data.gov.tn/dataset/liste-des-etablissements-scolaires-publics>  
+- <https://catalog.data.gov.tn/dataset/liste-des-etablissements-scolaires-prives>  
+- <https://catalog.data.gov.tn/dataset/etablissements-publics-enseignement-superieur-en-tunisie>  
+- <https://catalog.data.gov.tn/dataset/les-universites-etatiques-publiques-en-tunisie>
+
+The ingestion script automatically loads **all .csv files** present in the `data/` directory.
+
+Example structure:
 
 ```text
 tunisia-rag/
 ├── data/
-│   ├── recensement_population_gouvernorats.csv
-│   └── population_par_age_et_sexe.csv
-├── ingest.py ...The ingestion script automatically loads all .csv files present in the data/ directory.
-```
+│   ├── Etablissements-publics-enseignement-superieur-en-Tunisie.csv
+│   ├── Les-Universites-Etatiques-Publiques-en-Tunisie.csv
+│   ├── liste-des-etablissements-scolaires-prives.csv
+│   └── liste-des-etablissements-scolaires-publics.csv
+├── ingest.py
+├── query.py
+├── config.py
 
 ### 5. Ingest the Data into the Vector Database
 
@@ -136,11 +136,27 @@ You will see a prompt where you can ask questions in French or Arabic.
 Example questions you can try right away:
 
 ```text
-Quelle est la population totale de la Tunisie selon le RGPH 2014 ?
-Combien de femmes vivent en milieu rural ?
-Quelle est la répartition par tranche d'âge à Tunis ?
-Et pour les hommes ?               # ← follow-up questions work thanks to conversation history
-كم عدد سكان تونس حسب تعداد 2014؟
+Quelles sont les universités publiques à Tunis ?
+Liste des écoles secondaires privées à Sfax
+Quelle est l'adresse de l'ENIT (École Nationale d'Ingénieurs de Tunis) ?
+Y a-t-il des écoles primaires publiques à Ariana ?
+Combien d'établissements d'enseignement supérieur publics à Sousse ?
+Quels lycées techniques existe-t-il à Monastir ?
+كم عدد المدارس الثانوية العمومية في ولاية بن عروس؟
+Quelles sont les écoles privées à Nabeul ?
 ```
 
 Enjoy exploring real Tunisian open government data with natural language!
+
+## When Should you run ingest.py?
+
+You should run ingest.py in the following situations:
+
+```text
+Did you:
+  ├─ add / modify / delete any file in data/ ?                → YES → run ingest.py
+  ├─ change EMBEDDING_MODEL ?                                 → YES → run ingest.py
+  ├─ change chunking parameters (size, overlap, splitter) ?   → YES → run ingest.py
+  ├─ change COLLECTION_NAME ?                                 → YES → run ingest.py (old data stays but won't be used)
+  └─ only changed query.py / prompt / LLM settings ?          → NO  → don't run ingest.py
+```

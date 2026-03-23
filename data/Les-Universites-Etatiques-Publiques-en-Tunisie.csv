@@ -1,0 +1,15 @@
+﻿_id,code,university_fr,university_ar,siteweb,adresse,fax,tel
+1,1,UNIVERSITE EZZITOUNA,جامعة الزيتونة,www.uz.rnu.tn,"21, rue Sidi Abou El Kacem Jelizi - Place Maakel Ezzaïm Tunis - 1008",71576151.0,71576050;71576349
+2,2,UNIVERSITE DE TUNIS ,جامعة تونس,www.utunis.rnu.tn,"92, Avenue 9 avril 1938, Tunis - 1007",71560633.0,71567322;71562700
+3,3,UNIVERSITE TUNIS EL MANAR ,جامعة تونس المنار,www.utm.rnu.tn,Campus Universitaire El Manar II - B.P. 94 Poste Romena- 1068 Tunis,71872055;71871565,71871257;71871589
+4,4,UNIVERSITE DE CARTHAGE ,جامعة  قرطاج,www.ucar.rnu.tn,Avenue de la République - B.P 77 - 1054 Amilcar,71748910.0,71 749 100 ; 71 749 167
+5,5,UNIVERSITE DE LA  MANOUBA,جامعة منوبة,www.uma.rnu.tn,Campus Universitaire de la Manouba – 2010 Manouba,71602211.0,71 601 350 ; 71 602 996
+6,6,UNIVERSITE DE JENDOUBA,جامعة جندوبة,www.uj.rnu.tn,Avenue de l'environnement - 8100 Jendouba,78611299.0,78 611 300 ; 78 611 301
+7,7,UNIVERSITE DE SOUSSE,جامعة سوسة,www.uc.rnu.tn,Rue Khalifa El Karoui Sahloul - BP n° 526 - 4002 Sousse,73368126-73368128,73 368 130 ; 73 820 502
+8,8,UNIVERSITE DE MONASTIR ,جامعة المنستير,www.um.rnu.tn,Rue Taher Hadded - B.P. 56 - Monastir,73462867.0,73 462 876 ; 73 462 853
+9,9,UNIVERSITE DE KAIROUAN ,جامعة القيروان,www.univ-k.rnu.tn,avenue Baiet El Hekma - El Mansoura - 3131 Kairouan,77228500.0,77 229 400 ; 77 229 800
+10,10,UNIVERSITE DE SFAX,جامعة صفاقس,www.uss.rnu.tn,Route de l'aéroport km 0.5 - 3029 Sfax,74240913/74240200,74 244 423 ; 74 248 233
+11,11,UNIVERSITE DE GABES ,جامعة قابس,www.univgb.rnu.tn,"Cité Riadh, Zerig 6072 Gabès",75393500.0,75394800.0
+12,12,UNIVERSITE DE GAFSA,جامعة قفصة,www.ugaf.rnu.tn,km 04 Route Tozeur gafsa 2100,76210423.0,76210451;76210444
+13,13,DIRECTION GENERALE DES ETUDES TECHNOLOGIQUES ,المعاهد العليا للدراسات التكنولوجية,"",Rue El Kods - Radès - 2098 Tunis,71461518.0,71460700.0
+14,15,Université Virtuelle de Tunis,الجامعة الإفتراضية,www.uvt.rnu.tn,"13 Rue Ibn Nadim, 1073 Montplaisir, Tunis",71903603.0,71905248;71905269
