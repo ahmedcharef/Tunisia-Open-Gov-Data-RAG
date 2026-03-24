@@ -19,6 +19,7 @@
 - Easy model switching via OpenRouter (Qwen, Llama 3.3, Mistral, Claude, Gemini, …)
 - Local fallback to Ollama possible
 - Clean separation: ingestion / querying / configuration
+- CLI interface + **Streamlit Web UI**
 
 ## 🏗️ Project Structure
 
@@ -159,4 +160,17 @@ Did you:
   ├─ change chunking parameters (size, overlap, splitter) ?   → YES → run ingest.py
   ├─ change COLLECTION_NAME ?                                 → YES → run ingest.py (old data stays but won't be used)
   └─ only changed query.py / prompt / LLM settings ?          → NO  → don't run ingest.py
+```
+
+## Running the Streamlit Web Interface
+
+In addition to the CLI (query.py), this project includes a clean and interactive web interface built with Streamlit.
+How to run the Streamlit app
+
+```bash
+# 1. Make sure all dependencies are installed
+pip install -r requirements.txt
+
+# 2. Run the Streamlit application
+streamlit run app.py
 ```

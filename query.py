@@ -22,6 +22,7 @@ from config import Config, logger
 
 import warnings
 import logging
+from prompts import get_contextualize_prompt, get_qa_prompt
 
 # Silence only the specific multilingual-e5-large warning
 warnings.filterwarnings(
@@ -81,34 +82,8 @@ else:
     logger.error(f"Unsupported LLM_PROVIDER: {Config.LLM_PROVIDER}")
     sys.exit(1)
 # ====================== PROMPTS ======================
-contextualize_prompt = ChatPromptTemplate.from_messages([
-    ("system", "Reformule la dernière question en une requête autonome en tenant compte de l'historique."),
-    MessagesPlaceholder("chat_history"),
-    ("human", "{input}"),
-])
-
-qa_system_prompt = """Tu es un assistant expert des établissements d'enseignement en Tunisie (données officielles data.gov.tn).
-
-Tu connais :
-- Les universités et établissements publics d'enseignement supérieur
-- Les établissements scolaires publics
-- Les établissements scolaires privés
-
-Réponds de façon claire et structurée.
-Utilise les noms officiels, gouvernorats, délégations et adresses quand disponibles.
-Si tu donnes plusieurs établissements, présente-les sous forme de liste claire.
-Si l'information n'est pas dans le contexte, dis : "Je n'ai pas trouvé cet établissement dans les données disponibles."
-
-Contexte :
-{context}
-"""
-
-qa_prompt = ChatPromptTemplate.from_messages([
-    ("system", qa_system_prompt),
-    MessagesPlaceholder("chat_history"),
-    ("human", "{input}"),
-])
-
+contextualize_prompt = get_contextualize_prompt()
+qa_prompt = get_qa_prompt()
 # ====================== RETRIEVER FUNCTION ======================
 def get_retriever(k: int = 8, gouvernorat: str = None):
     """Create retriever with optional gouvernorat filter"""

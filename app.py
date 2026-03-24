@@ -12,6 +12,7 @@ from langchain_classic.chains import create_history_aware_retriever, create_retr
 from langchain_classic.chains.combine_documents import create_stuff_documents_chain
 
 from config import Config
+from prompts import contextualize_q_prompt, qa_prompt
 
 load_dotenv()
 
@@ -61,38 +62,6 @@ def get_llm():
         )
 
 llm = get_llm()
-
-# ====================== PROMPTS ======================
-contextualize_prompt = ChatPromptTemplate.from_messages([
-    ("system", "Reformule la question en une requête autonome en tenant compte de l'historique."),
-    MessagesPlaceholder("chat_history"),
-    ("human", "{input}"),
-])
-
-qa_system_prompt = """Tu es un assistant expert des établissements d'enseignement en Tunisie.
-
-Tu as accès aux données officielles concernant :
-- Universités et établissements d'enseignement supérieur publics
-- Établissements scolaires publics (primaire, secondaire, etc.)
-- Établissements scolaires privés
-
-**Instructions :**
-- Réponds de manière claire, précise et organisée.
-- Utilise des listes ou tableaux quand il y a plusieurs établissements.
-- Mentionne le gouvernorat, la délégation, le type et l'adresse quand disponible.
-- Si tu donnes une liste, limite-la à 8–10 résultats maximum pour plus de lisibilité.
-- Si l'information n'est pas disponible, dis-le clairement.
-- Réponds en français (ou en arabe si la question est en arabe).
-
-Contexte :
-{context}
-"""
-
-qa_prompt = ChatPromptTemplate.from_messages([
-    ("system", qa_system_prompt),
-    MessagesPlaceholder("chat_history"),
-    ("human", "{input}"),
-])
 
 # ====================== CHAINS ======================
 @st.cache_resource
