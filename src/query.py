@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 query.py - Tunisian Education Establishments RAG
-Clean & maintainable version using src/ package structure
+Clean, maintainable version with best practices
 """
 
 import argparse
@@ -15,14 +15,14 @@ from langchain_ollama import ChatOllama
 from langchain_chroma import Chroma
 from langchain_huggingface import HuggingFaceEmbeddings
 
-# Use langchain_classic for legacy chain constructors
+# Legacy chains (kept for stability - can migrate to LCEL later)
 from langchain_classic.chains import create_history_aware_retriever, create_retrieval_chain
 from langchain_classic.chains.combine_documents import create_stuff_documents_chain
 
 import warnings
 import logging
 
-# New clean imports from src package
+# Clean imports from src package
 from src.config import Config, logger
 from src.prompts import get_contextualize_prompt, get_qa_prompt
 
@@ -33,18 +33,15 @@ warnings.filterwarnings("ignore", message=".*position_ids.*UNEXPECTED.*")
 logging.getLogger("sentence_transformers").setLevel(logging.WARNING)
 logging.getLogger("transformers").setLevel(logging.ERROR)
 
-# ====================== CONSTANTS ======================
-COLLECTION_NAME = "tn_education_etablissements_2025"
-
 # ====================== LOAD VECTOR STORE ======================
 try:
     embeddings = HuggingFaceEmbeddings(model_name=Config.EMBEDDING_MODEL)
     vectorstore = Chroma(
         persist_directory=Config.CHROMA_PERSIST_DIR,
         embedding_function=embeddings,
-        collection_name=COLLECTION_NAME,
+        collection_name=Config.COLLECTION_NAME,   # Now from Config
     )
-    logger.info(f"✅ Vector store loaded successfully | Collection: {COLLECTION_NAME}")
+    logger.info(f"✅ Vector store loaded | Collection: {Config.COLLECTION_NAME}")
 except Exception as e:
     logger.error(f"Failed to load vector store: {e}")
     print("❌ Could not load the database. Please run `python ingest.py` first.")
@@ -90,9 +87,18 @@ def get_retriever(k: int = 8, gouvernorat: str = None):
         search_kwargs["filter"] = {"gouvernorat": {"$eq": gouvernorat.upper()}}
 
     return vectorstore.as_retriever(
-        search_type="mmr",          # Maximum Marginal Relevance → better diversity
+        search_type="mmr",
         search_kwargs=search_kwargs
     )
+
+
+# Create the base retriever once (best practice)
+base_retriever = get_retriever(k=Config.RETRIEVER_K)
+
+# Create chains once (avoid rebuilding every query)
+history_aware_retriever = create_history_aware_retriever(llm, base_retriever, contextualize_prompt)
+question_answer_chain = create_stuff_documents_chain(llm, qa_prompt)
+rag_chain = create_retrieval_chain(history_aware_retriever, question_answer_chain)
 
 
 # ====================== HELPER ======================
@@ -127,13 +133,12 @@ def main():
 
     if args.query:
         gov = extract_gouvernorat(args.query)
+        # Use dynamic retriever only for single query
         retriever = get_retriever(k=args.k, gouvernorat=gov)
+        temp_history_aware = create_history_aware_retriever(llm, retriever, contextualize_prompt)
+        temp_chain = create_retrieval_chain(temp_history_aware, question_answer_chain)
 
-        # Build chain for this query
-        history_aware = create_history_aware_retriever(llm, retriever, contextualize_prompt)
-        chain = create_retrieval_chain(history_aware, create_stuff_documents_chain(llm, qa_prompt))
-
-        response = chain.invoke({"input": args.query, "chat_history": chat_history})
+        response = temp_chain.invoke({"input": args.query, "chat_history": chat_history})
         print("\n🤖 Réponse:\n")
         print(response["answer"])
         return
@@ -160,18 +165,19 @@ def main():
             if not user_input:
                 continue
 
-            # Auto-detect governorate and apply filter
+            # Auto-detect governorate
             gov = extract_gouvernorat(user_input)
-            retriever = get_retriever(k=args.k, gouvernorat=gov)
+            current_retriever = get_retriever(k=args.k, gouvernorat=gov)
 
-            # Build fresh chain with current retriever
-            history_aware_retriever = create_history_aware_retriever(llm, retriever, contextualize_prompt)
-            rag_chain = create_retrieval_chain(
-                history_aware_retriever,
-                create_stuff_documents_chain(llm, qa_prompt)
+            # Build chain with current retriever
+            current_history_retriever = create_history_aware_retriever(
+                llm, current_retriever, contextualize_prompt
+            )
+            current_rag_chain = create_retrieval_chain(
+                current_history_retriever, question_answer_chain
             )
 
-            response = rag_chain.invoke({
+            response = current_rag_chain.invoke({
                 "input": user_input,
                 "chat_history": chat_history
             })
@@ -179,7 +185,6 @@ def main():
             answer = response["answer"]
             print(f"\n🤖 Réponse:\n{answer}\n")
 
-            # Keep history manageable
             chat_history.extend([("human", user_input), ("ai", answer)])
             if len(chat_history) > 10:
                 chat_history = chat_history[-10:]

@@ -7,10 +7,11 @@ from langchain_ollama import ChatOllama
 from langchain_chroma import Chroma
 from langchain_huggingface import HuggingFaceEmbeddings
 
+# Keep classic chains for consistency with query.py
 from langchain_classic.chains import create_history_aware_retriever, create_retrieval_chain
 from langchain_classic.chains.combine_documents import create_stuff_documents_chain
 
-# Updated imports using src package
+# Clean imports from src package
 from src.config import Config
 from src.prompts import get_contextualize_prompt, get_qa_prompt
 
@@ -38,7 +39,7 @@ if "vectorstore" not in st.session_state:
         st.session_state.vectorstore = Chroma(
             persist_directory=Config.CHROMA_PERSIST_DIR,
             embedding_function=embeddings,
-            collection_name="tn_education_etablissements_2025",
+            collection_name=Config.COLLECTION_NAME,   # Now from Config
         )
         st.success("✅ Base de données chargée avec succès", icon="✅")
     except Exception as e:
@@ -74,15 +75,23 @@ llm = get_llm()
 contextualize_prompt = get_contextualize_prompt()
 qa_prompt = get_qa_prompt()
 
-# ====================== RAG CHAIN BUILDER ======================
+# ====================== BASE CHAINS (created once) ======================
 @st.cache_resource
-def build_rag_chain(retriever):
-    """Build fresh RAG chain with given retriever"""
+def get_base_chains():
+    """Create base chains once for better performance"""
+    base_retriever = st.session_state.vectorstore.as_retriever(
+        search_type="mmr",
+        search_kwargs={"k": 8}
+    )
     history_aware_retriever = create_history_aware_retriever(
-        llm, retriever, contextualize_prompt
+        llm, base_retriever, contextualize_prompt
     )
     question_answer_chain = create_stuff_documents_chain(llm, qa_prompt)
-    return create_retrieval_chain(history_aware_retriever, question_answer_chain)
+    
+    return history_aware_retriever, question_answer_chain
+
+
+base_history_aware_retriever, base_question_answer_chain = get_base_chains()
 
 
 # ====================== SIDEBAR ======================
@@ -94,7 +103,7 @@ with st.sidebar:
         min_value=4,
         max_value=20,
         value=8,
-        help="Plus de documents = réponses plus riches, mais potentiellement plus lentes"
+        help="Plus de documents = réponses plus riches"
     )
 
     st.markdown("### Filtre par Gouvernorat")
@@ -112,6 +121,20 @@ with st.sidebar:
     st.markdown("---")
     st.caption(f"Modèle : **{Config.OPENROUTER_MODEL if Config.LLM_PROVIDER == 'openrouter' else Config.OLLAMA_MODEL}**")
 
+
+# ====================== HELPER FUNCTION ======================
+def get_dynamic_retriever(k: int, gouvernorat: str = None):
+    """Create retriever with optional gouvernorat filter"""
+    search_kwargs = {"k": k}
+    if gouvernorat and gouvernorat != "Tous":
+        search_kwargs["filter"] = {"gouvernorat": {"$eq": gouvernorat.upper()}}
+    
+    return st.session_state.vectorstore.as_retriever(
+        search_type="mmr",
+        search_kwargs=search_kwargs
+    )
+
+
 # ====================== MAIN CHAT INTERFACE ======================
 # Display chat history
 for message in st.session_state.chat_history:
@@ -121,42 +144,43 @@ for message in st.session_state.chat_history:
 # Chat input
 if prompt := st.chat_input("Posez votre question sur les établissements en Tunisie..."):
     
-    # Add user message to UI and history
+    # Add user message
     st.session_state.chat_history.append({"role": "user", "content": prompt})
     with st.chat_message("user"):
         st.markdown(prompt)
 
-    # Generate assistant response
+    # Generate response
     with st.chat_message("assistant"):
-        with st.spinner("Recherche dans la base de données tunisienne..."):
+        with st.spinner("Recherche dans la base de données..."):
             try:
-                # Build retriever with optional filter
-                search_kwargs = {"k": k_value}
-                if selected_gov != "Tous":
-                    search_kwargs["filter"] = {"gouvernorat": {"$eq": selected_gov}}
-
-                retriever = st.session_state.vectorstore.as_retriever(
-                    search_type="mmr",
-                    search_kwargs=search_kwargs
+                # Get dynamic retriever based on selected filter
+                current_retriever = get_dynamic_retriever(
+                    k=k_value, 
+                    gouvernorat=selected_gov
                 )
 
-                # Build chain dynamically for this query
-                rag_chain = build_rag_chain(retriever)
+                # Build chain with current retriever
+                history_aware_retriever = create_history_aware_retriever(
+                    llm, current_retriever, contextualize_prompt
+                )
+                current_rag_chain = create_retrieval_chain(
+                    history_aware_retriever, 
+                    base_question_answer_chain
+                )
 
-                response = rag_chain.invoke({
+                response = current_rag_chain.invoke({
                     "input": prompt,
                     "chat_history": [(m["role"], m["content"]) for m in st.session_state.chat_history[:-1]]
                 })
 
                 answer = response["answer"]
-
                 st.markdown(answer)
 
                 # Save to history
                 st.session_state.chat_history.append({"role": "assistant", "content": answer})
 
             except Exception as e:
-                st.error(f"Erreur lors de la génération de la réponse : {str(e)}")
+                st.error(f"Erreur lors de la génération : {str(e)}")
 
 # Footer
 st.markdown("---")

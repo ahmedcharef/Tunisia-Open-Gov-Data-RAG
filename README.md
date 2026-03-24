@@ -174,3 +174,38 @@ pip install -r requirements.txt
 # 2. Run the Streamlit application
 streamlit run app.py
 ```
+
+## New Project Structure
+
+```text
+tunisia-rag/
+├── data/                          # your CSV files
+├── chroma_db/                     # vector database (auto-generated)
+├── src/
+│   ├── **init**.py
+│   ├── config.py
+│   ├── ingest.py
+│   ├── prompts.py
+│   ├── query.py
+│   └── app.py                     # Streamlit UI
+├── run.py
+├── .env
+├── requirements.txt
+├── README.md
+└── .gitignore
+```
+
+## How to Use
+
+Now you can launch your project easily with:
+
+```Bash
+# Run CLI version
+python run.py
+
+# Run Web UI (Streamlit)
+python run.py ui
+
+# With debug mode
+python run.py --debug
+```
