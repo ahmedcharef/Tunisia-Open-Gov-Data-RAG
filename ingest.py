@@ -22,9 +22,13 @@ from langchain_chroma import Chroma
 from langchain_huggingface import HuggingFaceEmbeddings
 
 from config import Config, logger
+import warnings
 from tqdm import tqdm
 
 logging.getLogger("chromadb.telemetry.product.posthog").setLevel(logging.CRITICAL)
+logging.getLogger("sentence_transformers").setLevel(logging.WARNING)
+logging.getLogger("transformers").setLevel(logging.ERROR)
+warnings.filterwarnings("ignore", message=".*position_ids.*")
 load_dotenv()
 
 # ────────────────────────────────────────────────

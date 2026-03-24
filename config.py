@@ -45,7 +45,7 @@ class Config:
 
     # === Retrieval defaults ===
     RETRIEVER_K: int = int(os.getenv("RETRIEVER_K", "8"))
-    SEARCH_TYPE: str = os.getenv("SEARCH_TYPE", "similarity").strip()  # "similarity" or "mmr"
+    SEARCH_TYPE: str = os.getenv("SEARCH_TYPE", "similarity").strip()
 
     @classmethod
     def validate(cls) -> None:
