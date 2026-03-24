@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
-Tunisia Open Government Data RAG - Query Interface
-Supports OpenRouter (configurable model via .env) + Ollama fallback
+query.py - Tunisian Education Establishments RAG
+Improved version with metadata filtering and better prompting
 """
 
 import argparse
@@ -15,106 +15,91 @@ from langchain_ollama import ChatOllama
 from langchain_chroma import Chroma
 from langchain_huggingface import HuggingFaceEmbeddings
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
-# Old (broken in 1.0+)
-# from langchain.chains import create_history_aware_retriever, create_retrieval_chain
-# from langchain.chains.combine_documents import create_stuff_documents_chain
 
-# New (works with LangChain 1.0+)
 from langchain_classic.chains import create_history_aware_retriever, create_retrieval_chain
 from langchain_classic.chains.combine_documents import create_stuff_documents_chain
-import logging
-
 from config import Config, logger
 
-logging.getLogger("chromadb.telemetry.product.posthog").setLevel(logging.CRITICAL)
+import warnings
+import logging
+
+# Silence only the specific multilingual-e5-large warning
+warnings.filterwarnings(
+    "ignore", 
+    message=".*position_ids.*UNEXPECTED.*"
+)
+
+# Reduce verbosity from sentence-transformers and transformers
+logging.getLogger("sentence_transformers").setLevel(logging.WARNING)
+logging.getLogger("transformers").setLevel(logging.ERROR)
+
 load_dotenv()
 
-# ────────────────────────────────────────────────
-# 1. Load vector store & retriever
-# ────────────────────────────────────────────────
+# ====================== GLOBAL VARIABLES ======================
+COLLECTION_NAME = "tn_education_etablissements_2025"
+
+# ====================== LOAD VECTOR STORE ======================
 try:
     embeddings = HuggingFaceEmbeddings(model_name=Config.EMBEDDING_MODEL)
-    logger.info(f"Embeddings loaded: {Config.EMBEDDING_MODEL}")
-
     vectorstore = Chroma(
         persist_directory=Config.CHROMA_PERSIST_DIR,
         embedding_function=embeddings,
-        collection_name=Config.COLLECTION_NAME,
+        collection_name=COLLECTION_NAME,
     )
-    logger.info(f"Vector store loaded: {Config.CHROMA_PERSIST_DIR} / collection '{Config.COLLECTION_NAME}'")
-
+    logger.info(f"✅ Vector store loaded | Collection: {COLLECTION_NAME}")
 except Exception as e:
-    logger.error(f"Failed to load vector store or embeddings: {e}")
-    print("Error: Could not load the vector database. Did you run ingest.py first?")
+    logger.error(f"Failed to load vector store: {e}")
+    print("❌ Could not load the database. Run `python ingest.py` first.")
     sys.exit(1)
 
-# Retriever (can be overridden via CLI --k)
-retriever = vectorstore.as_retriever(
-    search_type=Config.SEARCH_TYPE,
-    search_kwargs={"k": Config.RETRIEVER_K}
-)
-
-# ────────────────────────────────────────────────
-# 2. LLM initialization
-# ────────────────────────────────────────────────
+# ====================== LLM SETUP ======================
 if Config.LLM_PROVIDER == "openrouter":
-    if not Config.OPENROUTER_API_KEY:
-        logger.error("OPENROUTER_API_KEY missing → cannot use OpenRouter")
-        sys.exit(1)
-
     llm = ChatOpenAI(
         model=Config.OPENROUTER_MODEL,
         api_key=Config.OPENROUTER_API_KEY,
         base_url="https://openrouter.ai/api/v1",
         temperature=Config.TEMPERATURE,
         max_tokens=Config.MAX_TOKENS,
-        extra_headers={
-            "HTTP-Referer": "https://github.com/ahmedcharef/Tunisia-Open-Gov-Data-RAG",
-            "X-Title": "Tunisia Open Data RAG",
+        model_kwargs={
+            "extra_headers": {
+                "HTTP-Referer": "https://github.com/ahmedcharef/Tunisia-Open-Gov-Data-RAG",
+                "X-Title": "Tunisia Open Data RAG",
+            }
         },
     )
-    logger.info(f"LLM: OpenRouter – {Config.OPENROUTER_MODEL} (temp={Config.TEMPERATURE})")
+    logger.info(f"Using OpenRouter → {Config.OPENROUTER_MODEL}")
 
 elif Config.LLM_PROVIDER == "ollama":
     llm = ChatOllama(
         model=Config.OLLAMA_MODEL,
         temperature=Config.TEMPERATURE,
-        num_ctx=32768,          # generous context for longer docs
-        base_url=Config.OLLAMA_BASE_URL or "http://localhost:11434",
+        num_ctx=32768,
     )
-    logger.info(f"LLM: Ollama – {Config.OLLAMA_MODEL} (local)")
+    logger.info(f"Using Ollama → {Config.OLLAMA_MODEL}")
 
 else:
     logger.error(f"Unsupported LLM_PROVIDER: {Config.LLM_PROVIDER}")
     sys.exit(1)
-
-# ────────────────────────────────────────────────
-# 3. Prompts
-# ────────────────────────────────────────────────
+# ====================== PROMPTS ======================
 contextualize_prompt = ChatPromptTemplate.from_messages([
-    ("system",
-     "Étant donné l'historique de la conversation et la dernière question de l'utilisateur "
-     "(en français ou en arabe), reformulez-la en une question autonome claire."),
+    ("system", "Reformule la dernière question en une requête autonome en tenant compte de l'historique."),
     MessagesPlaceholder("chat_history"),
     ("human", "{input}"),
 ])
 
-qa_system_prompt = """Vous êtes un assistant expert sur les établissements d'enseignement en Tunisie (données officielles data.gov.tn).
+qa_system_prompt = """Tu es un assistant expert des établissements d'enseignement en Tunisie (données officielles data.gov.tn).
 
-Vous avez accès à des listes d'établissements :
-- Universités et établissements publics d'enseignement supérieur
-- Établissements scolaires publics
-- Établissements scolaires privés
+Tu connais :
+- Les universités et établissements publics d'enseignement supérieur
+- Les établissements scolaires publics
+- Les établissements scolaires privés
 
-Instructions :
-- Répondez en français (ou arabe si la question l'est)
-- Soyez précis : noms officiels, adresses, gouvernorats, types d'établissements
-- Pour les listes : présentez-les de façon claire (ex: tableau markdown si >3 items)
-- Si l'utilisateur demande une liste → essayez de filtrer par gouvernorat, ville, type si mentionné
-- Mentionnez la source : "Selon les données data.gov.tn / Ministère de l'Éducation / Enseignement Supérieur"
-- Si pas d'information : "Je n'ai pas cet établissement dans les données actuelles."
+Réponds de façon claire et structurée.
+Utilise les noms officiels, gouvernorats, délégations et adresses quand disponibles.
+Si tu donnes plusieurs établissements, présente-les sous forme de liste claire.
+Si l'information n'est pas dans le contexte, dis : "Je n'ai pas trouvé cet établissement dans les données disponibles."
 
-Contexte pertinent (extraits de fiches d'établissements) :
+Contexte :
 {context}
 """
 
@@ -124,93 +109,113 @@ qa_prompt = ChatPromptTemplate.from_messages([
     ("human", "{input}"),
 ])
 
-# ────────────────────────────────────────────────
-# 4. Chains
-# ────────────────────────────────────────────────
+# ====================== RETRIEVER FUNCTION ======================
+def get_retriever(k: int = 8, gouvernorat: str = None):
+    """Create retriever with optional gouvernorat filter"""
+    search_kwargs = {"k": k}
+    if gouvernorat:
+        search_kwargs["filter"] = {"gouvernorat": gouvernorat.upper()}
+
+    return vectorstore.as_retriever(
+        search_type="mmr",           # Better diversity
+        search_kwargs=search_kwargs
+    )
+
+# ====================== CHAINS (created once) ======================
+retriever = get_retriever(k=Config.RETRIEVER_K)
 history_aware_retriever = create_history_aware_retriever(llm, retriever, contextualize_prompt)
-question_answer_chain   = create_stuff_documents_chain(llm, qa_prompt)
+question_answer_chain = create_stuff_documents_chain(llm, qa_prompt)
 rag_chain = create_retrieval_chain(history_aware_retriever, question_answer_chain)
 
-# ────────────────────────────────────────────────
-# 5. CLI + interactive loop
-# ────────────────────────────────────────────────
-def run_single_query(query: str, chat_history: List[Tuple[str, str]]) -> str:
-    try:
-        result = rag_chain.invoke({
-            "input": query,
-            "chat_history": chat_history
-        })
-        return result["answer"]
-    except Exception as e:
-        logger.error(f"Query failed: {e}")
-        return f"Erreur lors du traitement : {str(e)}"
+# ====================== HELPER ======================
+def extract_gouvernorat(query: str) -> str | None:
+    """Simple detection of governorate in query"""
+    query_lower = query.lower()
+    gouvernorats = {
+        "tunis", "sfax", "sousse", "ariana", "ben arous", "manouba", "nabeul", "bizerte",
+        "béja", "jendouba", "kairouan", "kasserine", "gafsa", "medenine", "gabes",
+        "kebili", "tataouine", "zaghouan", "siliana", "mahdia", "monastir", "tozeur"
+    }
+    for gov in gouvernorats:
+        if gov in query_lower:
+            return gov.upper()
+    return None
 
+# ====================== MAIN ======================
 def main():
-    parser = argparse.ArgumentParser(description="Tunisia Open Data RAG - Query Interface")
-    parser.add_argument("--query", type=str, help="Posez une seule question (mode non-interactif)")
-    parser.add_argument("--k", type=int, help="Nombre de documents à récupérer (surcharge config)")
+    parser = argparse.ArgumentParser(description="Tunisia Education RAG")
+    parser.add_argument("--query", type=str, help="Single query")
+    parser.add_argument("--k", type=int, default=Config.RETRIEVER_K, help="Number of results")
+    parser.add_argument("--stats", action="store_true", help="Show stats")
     args = parser.parse_args()
 
-    # Optional: override retriever k from CLI
-    if args.k is not None and args.k > 0:
-        global retriever
-        retriever = vectorstore.as_retriever(
-            search_type=Config.SEARCH_TYPE,
-            search_kwargs={"k": args.k}
-        )
-        logger.info(f"Retriever depth overriden to k={args.k}")
+    if args.stats:
+        count = vectorstore._collection.count()
+        print(f"📊 Total establishments in database: {count:,}")
+        return
 
     chat_history: List[Tuple[str, str]] = []
 
     if args.query:
-        # Single-shot mode
-        print("Question :", args.query)
-        answer = run_single_query(args.query, chat_history)
-        print("\nRéponse :")
-        print(answer)
+        gov = extract_gouvernorat(args.query)
+        local_retriever = get_retriever(k=args.k, gouvernorat=gov)
+        local_chain = create_retrieval_chain(
+            create_history_aware_retriever(llm, local_retriever, contextualize_prompt),
+            question_answer_chain
+        )
+        response = local_chain.invoke({"input": args.query, "chat_history": chat_history})
+        print("\n🤖 Réponse:\n", response["answer"])
         return
 
-    # Interactive mode
-    print("="*60)
-    print("  Tunisia Open Government Data RAG")
-    print("  Modèle :", Config.OPENROUTER_MODEL if Config.LLM_PROVIDER == "openrouter" else Config.OLLAMA_MODEL)
-    print("  Tapez 'exit', 'quit' ou Ctrl+C pour quitter")
-    print("  'clear' pour effacer l'historique de conversation")
-    print("="*60 + "\n")
+    # === Interactive Mode ===
+    print("="*75)
+    print("   🇹🇳 Tunisia Education RAG - Établissements scolaires & universitaires")
+    print("="*75)
 
     while True:
         try:
-            user_input = input("Question (fr / ar) > ").strip()
-            if user_input.lower() in {"exit", "quit"}:
-                print("\nAu revoir !\n")
+            user_input = input("\nQuestion (fr/ar) > ").strip()
+            if user_input.lower() in ["exit", "quit", "q"]:
+                print("👋 Au revoir !")
                 break
-
             if user_input.lower() == "clear":
                 chat_history.clear()
-                print("Historique effacé.\n")
+                print("🧹 Historique effacé.")
                 continue
-
             if not user_input:
                 continue
 
-            print("\nRéflexion en cours...\n")
+            # Auto-detect governorate for filtering
+            gov = extract_gouvernorat(user_input)
+            current_retriever = get_retriever(k=args.k, gouvernorat=gov)
 
-            answer = run_single_query(user_input, chat_history)
-            print(answer)
-            print("-"*60 + "\n")
+            # Rebuild chain with current retriever
+            current_history_retriever = create_history_aware_retriever(
+                llm, current_retriever, contextualize_prompt
+            )
+            current_rag_chain = create_retrieval_chain(
+                current_history_retriever, question_answer_chain
+            )
 
-            # Update history (keep last 8 messages ≈ 4 turns)
-            chat_history.append(("human", user_input))
-            chat_history.append(("ai", answer))
-            if len(chat_history) > 8:
-                chat_history = chat_history[-8:]
+            response = current_rag_chain.invoke({
+                "input": user_input,
+                "chat_history": chat_history
+            })
+
+            answer = response["answer"]
+            print(f"\n🤖 Réponse:\n{answer}\n")
+
+            # Update history
+            chat_history.extend([("human", user_input), ("ai", answer)])
+            if len(chat_history) > 10:
+                chat_history = chat_history[-10:]
 
         except KeyboardInterrupt:
-            print("\n\nArrêt par l'utilisateur.\n")
+            print("\n\nArrêté par l'utilisateur.")
             break
         except Exception as e:
-            logger.exception("Unexpected error in interactive loop")
-            print("Une erreur inattendue est survenue. Consultez les logs.\n")
+            logger.error(f"Erreur: {e}")
+            print("❌ Une erreur est survenue.")
 
 if __name__ == "__main__":
     main()
