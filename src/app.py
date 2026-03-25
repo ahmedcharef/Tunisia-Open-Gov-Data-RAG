@@ -2,17 +2,9 @@ import streamlit as st
 from dotenv import load_dotenv
 from typing import List
 
-from langchain_openai import ChatOpenAI
-from langchain_ollama import ChatOllama
-from langchain_chroma import Chroma
-from langchain_huggingface import HuggingFaceEmbeddings
-from langchain_core.output_parsers import StrOutputParser
-from langchain_core.runnables import RunnablePassthrough
-
 from src.config import Config
-from src.prompts import get_contextualize_prompt, get_qa_prompt
-from src.retriever import get_retriever
-from src.utils import extract_gouvernorat
+from src.rag_service import RAGService
+from src.retriever import get_vectorstore_stats
 
 load_dotenv()
 
@@ -31,75 +23,12 @@ st.caption("Official data from data.gov.tn")
 if "chat_history" not in st.session_state:
     st.session_state.chat_history: List[dict] = []
 
-if "vectorstore" not in st.session_state:
-    try:
-        embeddings = HuggingFaceEmbeddings(model_name=Config.EMBEDDING_MODEL)
-        st.session_state.vectorstore = Chroma(
-            persist_directory=Config.CHROMA_PERSIST_DIR,
-            embedding_function=embeddings,
-            collection_name=Config.COLLECTION_NAME,
-        )
-        st.success("✅ Database loaded successfully", icon="✅")
-    except Exception as e:
-        st.error(f"❌ Failed to load database: {e}")
-        st.stop()
-
-# ====================== LLM SETUP ======================
+# Initialize shared RAG service
 @st.cache_resource
-def get_llm():
-    try:
-        if Config.LLM_PROVIDER == "openrouter":
-            return ChatOpenAI(
-                model=Config.OPENROUTER_MODEL,
-                api_key=Config.OPENROUTER_API_KEY,
-                base_url="https://openrouter.ai/api/v1",
-                temperature=0.25,
-                max_tokens=2048,
-                model_kwargs={
-                    "extra_headers": {
-                        "HTTP-Referer": "https://github.com/ahmedcharef/Tunisia-Open-Gov-Data-RAG",
-                        "X-Title": "Tunisia Education RAG",
-                    }
-                },
-            )
-        else:
-            return ChatOllama(
-                model=Config.OLLAMA_MODEL,
-                temperature=0.25,
-                num_ctx=32768,
-            )
-    except Exception as e:
-        st.error(f"Failed to initialize LLM: {e}")
-        st.stop()
+def get_rag_service():
+    return RAGService()
 
-
-llm = get_llm()
-
-# ====================== PROMPTS ======================
-contextualize_prompt = get_contextualize_prompt()
-qa_prompt = get_qa_prompt()
-
-# ====================== LCEL CHAIN BUILDER ======================
-def create_rag_chain(retriever):
-    """Create RAG chain using LCEL (same as query.py)"""
-    contextualize_chain = (
-        contextualize_prompt 
-        | llm 
-        | StrOutputParser()
-    )
-
-    rag_chain = (
-        {
-            "context": contextualize_chain | retriever,
-            "input": RunnablePassthrough(),
-            "chat_history": RunnablePassthrough(),
-        }
-        | qa_prompt
-        | llm
-        | StrOutputParser()
-    )
-    return rag_chain
-
+service = get_rag_service()
 
 # ====================== SIDEBAR ======================
 with st.sidebar:
@@ -135,7 +64,7 @@ for message in st.session_state.chat_history:
 
 if prompt := st.chat_input("Ask a question about educational institutions in Tunisia..."):
     
-    # Add user message
+    # Add user message to history and display
     st.session_state.chat_history.append({"role": "user", "content": prompt})
     with st.chat_message("user"):
         st.markdown(prompt)
@@ -143,27 +72,32 @@ if prompt := st.chat_input("Ask a question about educational institutions in Tun
     with st.chat_message("assistant"):
         with st.spinner("Searching the database..."):
             try:
-                # Apply governorate filter if selected
-                gov_filter = selected_gov if selected_gov != "All" else None
-                retriever = get_retriever(k=k_value, gouvernorat=gov_filter)
+                # Use shared service
+                result = service.query(
+                    user_input=prompt, 
+                    chat_history=[(m["role"], m["content"]) for m in st.session_state.chat_history[:-1]],
+                    k=k_value
+                )
 
-                # Create LCEL chain
-                rag_chain = create_rag_chain(retriever)
+                # Display answer
+                st.markdown(result["answer"])
 
-                response = rag_chain.invoke({
-                    "input": prompt,
-                    "chat_history": [(m["role"], m["content"]) for m in st.session_state.chat_history[:-1]]
+                # Display sources if available
+                if result.get("sources"):
+                    st.markdown("**📚 Sources:**")
+                    for source in result["sources"]:
+                        st.caption(f"• {source}")
+
+                # Add assistant response to history
+                st.session_state.chat_history.append({
+                    "role": "assistant", 
+                    "content": result["answer"]
                 })
-
-                answer = response
-                st.markdown(answer)
-
-                # Add to history
-                st.session_state.chat_history.append({"role": "assistant", "content": answer})
 
             except Exception as e:
                 st.error(f"An error occurred while generating the response: {str(e)}")
 
+# Footer
 st.markdown("---")
 st.caption(
     "🇹🇳 Tunisia Open Government Data RAG | "

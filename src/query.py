@@ -1,99 +1,16 @@
 #!/usr/bin/env python3
 """
-query.py - Tunisian Education RAG (LCEL Version)
-With proper source citations and robust error handling
+query.py - CLI interface using shared RAGService
 """
 
 import argparse
 import sys
-from typing import List, Tuple, Dict
-
-from dotenv import load_dotenv
-from langchain_openai import ChatOpenAI
-from langchain_ollama import ChatOllama
-from langchain_chroma import Chroma
-from langchain_huggingface import HuggingFaceEmbeddings
-from langchain_core.output_parsers import StrOutputParser
-from langchain_core.runnables import RunnablePassthrough, RunnableParallel
+from typing import List, Tuple
 
 from src.config import Config, logger
-from src.prompts import get_contextualize_prompt, get_qa_prompt
-from src.retriever import get_retriever
-from src.utils import extract_gouvernorat, format_source_citation
+from src.rag_service import RAGService
+from src.retriever import get_vectorstore_stats
 
-load_dotenv()
-
-# Silence noisy warnings
-warnings.filterwarnings("ignore", message=".*position_ids.*UNEXPECTED.*")
-logging.getLogger("sentence_transformers").setLevel(logging.WARNING)
-logging.getLogger("transformers").setLevel(logging.ERROR)
-
-# ====================== VECTOR STORE ======================
-embeddings = HuggingFaceEmbeddings(model_name=Config.EMBEDDING_MODEL)
-vectorstore = Chroma(
-    persist_directory=Config.CHROMA_PERSIST_DIR,
-    embedding_function=embeddings,
-    collection_name=Config.COLLECTION_NAME,
-)
-
-# ====================== LLM ======================
-def get_llm():
-    try:
-        if Config.LLM_PROVIDER == "openrouter":
-            return ChatOpenAI(
-                model=Config.OPENROUTER_MODEL,
-                api_key=Config.OPENROUTER_API_KEY,
-                base_url="https://openrouter.ai/api/v1",
-                temperature=Config.TEMPERATURE,
-                max_tokens=Config.MAX_TOKENS,
-                model_kwargs={
-                    "extra_headers": {
-                        "HTTP-Referer": "https://github.com/ahmedcharef/Tunisia-Open-Gov-Data-RAG",
-                        "X-Title": "Tunisia Education RAG",
-                    }
-                },
-            )
-        else:
-            return ChatOllama(
-                model=Config.OLLAMA_MODEL,
-                temperature=Config.TEMPERATURE,
-                num_ctx=32768,
-            )
-    except Exception as e:
-        logger.error(f"Failed to initialize LLM: {e}")
-        raise
-
-
-llm = get_llm()
-
-# ====================== PROMPTS ======================
-contextualize_prompt = get_contextualize_prompt()
-qa_prompt = get_qa_prompt()
-
-# ====================== LCEL CHAIN WITH CITATIONS ======================
-def create_rag_chain(retriever):
-    """Create LCEL RAG chain that returns both answer and retrieved documents."""
-
-    # Contextualize question
-    contextualize_chain = contextualize_prompt | llm | StrOutputParser()
-
-    # Parallel execution: get context + answer
-    rag_chain = (
-        RunnableParallel({
-            "context": contextualize_chain | retriever,
-            "input": RunnablePassthrough(),
-            "chat_history": RunnablePassthrough(),
-        })
-        | RunnableParallel({
-            "answer": qa_prompt | llm | StrOutputParser(),
-            "context": RunnablePassthrough() | (lambda x: x["context"])
-        })
-    )
-    
-    return rag_chain
-
-
-# ====================== MAIN ======================
 def main():
     parser = argparse.ArgumentParser(description="Tunisia Education RAG CLI")
     parser.add_argument("--query", type=str, help="Single query mode")
@@ -101,49 +18,27 @@ def main():
     parser.add_argument("--stats", action="store_true")
     args = parser.parse_args()
 
+    service = RAGService()
+
     if args.stats:
-        try:
-            from src.retriever import get_vectorstore_stats
-            stats = get_vectorstore_stats()
-            print(f"📊 Total establishments in database: {stats['total_documents']:,}")
-        except Exception as e:
-            logger.error(f"Failed to get stats: {e}")
-            print("❌ Could not retrieve statistics.")
+        stats = get_vectorstore_stats()
+        print(f"📊 Total establishments in database: {stats['total_documents']:,}")
         return
 
     chat_history: List[Tuple[str, str]] = []
 
     if args.query:
-        try:
-            gov = extract_gouvernorat(args.query)
-            retriever = get_retriever(k=args.k, gouvernorat=gov)
-            chain = create_rag_chain(retriever)
+        result = service.query(args.query, chat_history, k=args.k)
+        print("\n🤖 Response:\n")
+        print(result["answer"])
 
-            result = chain.invoke({
-                "input": args.query,
-                "chat_history": chat_history
-            })
-
-            answer = result["answer"]
-            context_docs = result.get("context", [])
-
-            print("\n🤖 Response:\n")
-            print(answer)
-
-            # Show sources
-            if context_docs:
-                print("\n📚 Sources:")
-                for doc in context_docs[:5]:   # Limit to top 5 sources
-                    citation = format_source_citation(doc)
-                    if citation:
-                        print(f"   • {citation}")
-
-        except Exception as e:
-            logger.error(f"Error processing query: {e}")
-            print("❌ An error occurred while processing your question.")
+        if result["sources"]:
+            print("\n📚 Sources:")
+            for source in result["sources"]:
+                print(f"   • {source}")
         return
 
-    # ====================== Interactive Mode ======================
+    # Interactive Mode
     print("=" * 80)
     print("   🇹🇳 Tunisia Education RAG")
     print("   Type 'exit', 'quit', or 'clear' to manage conversation")
@@ -165,30 +60,17 @@ def main():
             if not user_input:
                 continue
 
-            gov = extract_gouvernorat(user_input)
-            retriever = get_retriever(k=args.k, gouvernorat=gov)
-            chain = create_rag_chain(retriever)
+            result = service.query(user_input, chat_history, k=args.k)
 
-            result = chain.invoke({
-                "input": user_input,
-                "chat_history": chat_history
-            })
+            print(f"\n🤖 Response:\n{result['answer']}\n")
 
-            answer = result["answer"]
-            context_docs = result.get("context", [])
-
-            print(f"\n🤖 Response:\n{answer}\n")
-
-            # Display sources
-            if context_docs:
+            if result["sources"]:
                 print("📚 Sources:")
-                for doc in context_docs[:5]:
-                    citation = format_source_citation(doc)
-                    if citation:
-                        print(f"   • {citation}")
+                for source in result["sources"]:
+                    print(f"   • {source}")
                 print("")
 
-            chat_history.extend([("human", user_input), ("ai", answer)])
+            chat_history.extend([("human", user_input), ("ai", result["answer"])])
             if len(chat_history) > 10:
                 chat_history = chat_history[-10:]
 
@@ -196,7 +78,7 @@ def main():
             print("\n\n👋 Stopped by user.")
             break
         except Exception as e:
-            logger.error(f"Error in interactive mode: {e}")
+            logger.error(f"Unexpected error: {e}")
             print("❌ An error occurred. Please try again.")
 
 if __name__ == "__main__":
