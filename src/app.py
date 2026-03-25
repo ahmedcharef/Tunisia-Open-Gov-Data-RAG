@@ -52,11 +52,10 @@ tab1, tab2 = st.tabs(["💬 Chat Assistant", "📊 Statistics Dashboard"])
 # ====================== SIDEBAR (Common) ======================
 with st.sidebar:
     st.header("⚙️ Settings")
-    
     k_value = st.slider(
-        "Number of documents to retrieve (k)", 
-        min_value=4, 
-        max_value=20, 
+        "Number of documents to retrieve (k)",
+        min_value=4,
+        max_value=20,
         value=8,
         help="Higher values provide more context but may slow down responses"
     )
@@ -74,7 +73,8 @@ with st.sidebar:
         st.rerun()
 
     st.markdown("---")
-    st.caption(f"Model: **{Config.OPENROUTER_MODEL if Config.LLM_PROVIDER == 'openrouter' else Config.OLLAMA_MODEL}**")
+    st.caption(
+        f"Model: **{Config.OPENROUTER_MODEL if Config.LLM_PROVIDER == 'openrouter' else Config.OLLAMA_MODEL}**")
 
 # ====================== TAB 1: CHAT ASSISTANT ======================
 with tab1:
@@ -86,7 +86,7 @@ with tab1:
             st.markdown(message["content"])
 
     if prompt := st.chat_input("Ask a question about educational institutions in Tunisia..."):
-        
+
         st.session_state.chat_history.append({"role": "user", "content": prompt})
         with st.chat_message("user"):
             st.markdown(prompt)
@@ -95,8 +95,8 @@ with tab1:
             with st.spinner("Searching the database..."):
                 try:
                     result = service.query(
-                        user_input=prompt, 
-                        chat_history=[(m["role"], m["content"]) for m in st.session_state.chat_history[:-1]],
+                        user_input=prompt,
+                        chat_history=st.session_state.chat_history[:-1],   # ← This must be list of dicts
                         k=k_value
                     )
 
@@ -113,15 +113,14 @@ with tab1:
                     })
 
                 except Exception as e:
-                    st.error(f"An error occurred: {str(e)}")
-
+                    st.error(f"An error occurred while generating the response: {str(e)}")
 # ====================== TAB 2: STATISTICS DASHBOARD ======================
 with tab2:
     st.subheader("📊 Database Statistics")
 
     try:
         stats = get_vectorstore_stats()
-        
+
         col1, col2, col3 = st.columns(3)
         with col1:
             st.metric("Total Establishments", f"{stats['total_documents']:,}")
