@@ -1,6 +1,19 @@
 #!/usr/bin/env python3
 """
-query.py - CLI interface using shared RAGService
+query.py - Command Line Interface for Tunisia Education RAG
+
+This is the CLI version of the RAG application.
+It allows users to query Tunisian educational institutions (schools and universities)
+using natural language.
+
+Features:
+- Single query mode (--query)
+- Interactive chat mode
+- Governorate-based filtering
+- Source citations
+- Database statistics (--stats)
+
+Uses the shared RAGService layer for consistency with the Streamlit UI.
 """
 
 import argparse
