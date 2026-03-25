@@ -218,3 +218,19 @@ separate retrieval logic and add metadata helpers, etc.
 |-------------------|-------------------------------------------------------------------------|----------------------------------------------------------------------|------------------------------------------------------|
 | src/retriever.py | Centralize all retrieval logic (get_retriever, filters, MMR, hybrid search) | We are adding more advanced filtering and citations                  | Keeps query.py and app.py clean and consistent       |
 | src/utils.py     | Small helper functions (extract_gouvernorat, format citations, statistics, etc.) | We need source citations and better governorate handling             | Avoids code duplication and improves readability     |
+
+## Basic Retrieval + Citation Tests
+
+Recommended Test Questions
+
+```text
+text1. What is the address of ENIT?
+
+2. List universities in Tunis
+
+3. Show me some private schools in Sfax
+
+4. Tell me about engineering schools in Tunisia
+
+5. Where is the INSAT located?
+```

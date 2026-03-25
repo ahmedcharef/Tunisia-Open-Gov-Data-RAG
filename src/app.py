@@ -45,7 +45,7 @@ if "vectorstore" not in st.session_state:
         st.error(f"❌ Failed to load database: {e}")
         st.stop()
 
-# ====================== LLM SETUP (Fixed warning) ======================
+# ====================== LLM SETUP ======================
 @st.cache_resource
 def get_llm():
     try:
@@ -101,7 +101,7 @@ with st.sidebar:
     st.markdown("---")
     st.caption(f"Model: **{Config.OPENROUTER_MODEL if Config.LLM_PROVIDER == 'openrouter' else Config.OLLAMA_MODEL}**")
 
-# ====================== MAIN CHAT INTERFACE ======================
+# ====================== MAIN CHAT ======================
 for message in st.session_state.chat_history:
     with st.chat_message(message["role"]):
         st.markdown(message["content"])
@@ -136,6 +136,4 @@ if prompt := st.chat_input("Ask a question about Tunisian educational institutio
                 st.error(f"An error occurred while generating the response: {str(e)}")
 
 st.markdown("---")
-st.caption("🇹🇳 Tunisia Open Government Data RAG | "
-"Built with LangChain + Streamlit"
-)
+st.caption("🇹🇳 Tunisia Open Government Data RAG | Built with LangChain + Streamlit")

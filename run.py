@@ -3,13 +3,14 @@
 run.py - Easy entry point for Tunisia Education RAG
 
 Usage:
-    python run.py              → Run CLI version
+    python run.py              → Run CLI version (default)
     python run.py ui           → Run Streamlit web UI
-    python run.py --help       → Show help
+    python run.py --debug      → Enable debug logging
 """
 
 import sys
 import argparse
+import logging
 
 def main():
     parser = argparse.ArgumentParser(
@@ -31,26 +32,38 @@ def main():
 
     args = parser.parse_args()
 
+    # Enable debug logging if requested
     if args.debug:
-        import logging
-        logging.basicConfig(level=logging.DEBUG)
+        logging.basicConfig(
+            level=logging.DEBUG,
+            format="%(asctime)s | %(levelname)s | %(name)s | %(message)s"
+        )
+        print("🛠️  Debug mode enabled\n")
 
     if args.mode == "cli":
         print("🚀 Starting Tunisia Education RAG (CLI Mode)\n")
-        from src.query import main as run_cli
-        run_cli()
+        try:
+            from src.query import main as run_cli
+            run_cli()
+        except Exception as e:
+            print(f"❌ Failed to start CLI: {e}")
+            sys.exit(1)
 
     elif args.mode == "ui":
         print("🌐 Starting Tunisia Education RAG (Streamlit UI)")
-        print("   Open your browser when the server starts...\n")
+        print("   The browser should open automatically...\n")
         
-        import streamlit.web.cli as stcli
-        import os
-        import sys
-
-        # Set Streamlit to run src/app.py
-        sys.argv = ["streamlit", "run", "src/app.py", "--server.headless", "true"]
-        stcli.main()
+        try:
+            import streamlit.web.cli as stcli
+            # Properly set up sys.argv for Streamlit
+            sys.argv = ["streamlit", "run", "src/app.py", "--server.headless", "true"]
+            stcli.main()
+        except ImportError:
+            print("❌ Streamlit is not installed. Please run: pip install streamlit")
+            sys.exit(1)
+        except Exception as e:
+            print(f"❌ Failed to start Streamlit UI: {e}")
+            sys.exit(1)
 
 
 if __name__ == "__main__":

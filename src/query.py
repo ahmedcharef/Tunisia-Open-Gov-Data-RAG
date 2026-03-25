@@ -41,9 +41,11 @@ def get_llm():
                 base_url="https://openrouter.ai/api/v1",
                 temperature=Config.TEMPERATURE,
                 max_tokens=Config.MAX_TOKENS,
-                extra_headers={
-                    "HTTP-Referer": "https://github.com/ahmedcharef/Tunisia-Open-Gov-Data-RAG",
-                    "X-Title": "Tunisia Education RAG",
+                model_kwargs={
+                    "extra_headers": {
+                        "HTTP-Referer": "https://github.com/ahmedcharef/Tunisia-Open-Gov-Data-RAG",
+                        "X-Title": "Tunisia Education RAG",
+                    }
                 },
             )
         else:
@@ -115,7 +117,7 @@ def main():
 
     while True:
         try:
-            user_input = input("\nQuestion (fr/ar) > ").strip()
+            user_input = input("\nQuestion > ").strip()
 
             if user_input.lower() in ["exit", "quit", "q"]:
                 print("👋 Au revoir !")
