@@ -7,17 +7,16 @@ from langchain_ollama import ChatOllama
 from langchain_chroma import Chroma
 from langchain_huggingface import HuggingFaceEmbeddings
 
-# Keep classic chains for consistency with query.py
 from langchain_classic.chains import create_history_aware_retriever, create_retrieval_chain
 from langchain_classic.chains.combine_documents import create_stuff_documents_chain
 
-# Clean imports from src package
 from src.config import Config
 from src.prompts import get_contextualize_prompt, get_qa_prompt
+from src.retriever import get_retriever
+from src.utils import extract_gouvernorat
 
 load_dotenv()
 
-# ====================== PAGE CONFIG ======================
 st.set_page_config(
     page_title="🇹🇳 Tunisia Education RAG",
     page_icon="🎓",
@@ -39,14 +38,14 @@ if "vectorstore" not in st.session_state:
         st.session_state.vectorstore = Chroma(
             persist_directory=Config.CHROMA_PERSIST_DIR,
             embedding_function=embeddings,
-            collection_name=Config.COLLECTION_NAME,   # Now from Config
+            collection_name=Config.COLLECTION_NAME,
         )
         st.success("✅ Base de données chargée avec succès", icon="✅")
     except Exception as e:
         st.error(f"❌ Impossible de charger la base de données : {e}")
         st.stop()
 
-# ====================== LLM SETUP ======================
+# ====================== LLM ======================
 @st.cache_resource
 def get_llm():
     if Config.LLM_PROVIDER == "openrouter":
@@ -68,44 +67,18 @@ def get_llm():
             num_ctx=32768,
         )
 
-
 llm = get_llm()
 
 # ====================== PROMPTS ======================
 contextualize_prompt = get_contextualize_prompt()
 qa_prompt = get_qa_prompt()
 
-# ====================== BASE CHAINS (created once) ======================
-@st.cache_resource
-def get_base_chains():
-    """Create base chains once for better performance"""
-    base_retriever = st.session_state.vectorstore.as_retriever(
-        search_type="mmr",
-        search_kwargs={"k": 8}
-    )
-    history_aware_retriever = create_history_aware_retriever(
-        llm, base_retriever, contextualize_prompt
-    )
-    question_answer_chain = create_stuff_documents_chain(llm, qa_prompt)
-    
-    return history_aware_retriever, question_answer_chain
-
-
-base_history_aware_retriever, base_question_answer_chain = get_base_chains()
-
-
 # ====================== SIDEBAR ======================
 with st.sidebar:
     st.header("⚙️ Paramètres")
-
-    k_value = st.slider(
-        "Nombre de documents à récupérer (k)",
-        min_value=4,
-        max_value=20,
-        value=8,
-        help="Plus de documents = réponses plus riches"
-    )
-
+    
+    k_value = st.slider("Nombre de documents à récupérer (k)", min_value=4, max_value=20, value=8)
+    
     st.markdown("### Filtre par Gouvernorat")
     selected_gov = st.selectbox(
         "Gouvernorat",
@@ -121,54 +94,25 @@ with st.sidebar:
     st.markdown("---")
     st.caption(f"Modèle : **{Config.OPENROUTER_MODEL if Config.LLM_PROVIDER == 'openrouter' else Config.OLLAMA_MODEL}**")
 
-
-# ====================== HELPER FUNCTION ======================
-def get_dynamic_retriever(k: int, gouvernorat: str = None):
-    """Create retriever with optional gouvernorat filter"""
-    search_kwargs = {"k": k}
-    if gouvernorat and gouvernorat != "Tous":
-        search_kwargs["filter"] = {"gouvernorat": {"$eq": gouvernorat.upper()}}
-    
-    return st.session_state.vectorstore.as_retriever(
-        search_type="mmr",
-        search_kwargs=search_kwargs
-    )
-
-
-# ====================== MAIN CHAT INTERFACE ======================
-# Display chat history
+# ====================== MAIN CHAT ======================
 for message in st.session_state.chat_history:
     with st.chat_message(message["role"]):
         st.markdown(message["content"])
 
-# Chat input
 if prompt := st.chat_input("Posez votre question sur les établissements en Tunisie..."):
-    
-    # Add user message
     st.session_state.chat_history.append({"role": "user", "content": prompt})
     with st.chat_message("user"):
         st.markdown(prompt)
 
-    # Generate response
     with st.chat_message("assistant"):
         with st.spinner("Recherche dans la base de données..."):
             try:
-                # Get dynamic retriever based on selected filter
-                current_retriever = get_dynamic_retriever(
-                    k=k_value, 
-                    gouvernorat=selected_gov
-                )
+                current_retriever = get_retriever(k=k_value, gouvernorat=selected_gov if selected_gov != "Tous" else None)
 
-                # Build chain with current retriever
-                history_aware_retriever = create_history_aware_retriever(
-                    llm, current_retriever, contextualize_prompt
-                )
-                current_rag_chain = create_retrieval_chain(
-                    history_aware_retriever, 
-                    base_question_answer_chain
-                )
+                history_aware = create_history_aware_retriever(llm, current_retriever, contextualize_prompt)
+                chain = create_retrieval_chain(history_aware, create_stuff_documents_chain(llm, qa_prompt))
 
-                response = current_rag_chain.invoke({
+                response = chain.invoke({
                     "input": prompt,
                     "chat_history": [(m["role"], m["content"]) for m in st.session_state.chat_history[:-1]]
                 })
@@ -176,13 +120,11 @@ if prompt := st.chat_input("Posez votre question sur les établissements en Tuni
                 answer = response["answer"]
                 st.markdown(answer)
 
-                # Save to history
                 st.session_state.chat_history.append({"role": "assistant", "content": answer})
 
             except Exception as e:
                 st.error(f"Erreur lors de la génération : {str(e)}")
 
-# Footer
 st.markdown("---")
 st.caption(
     "🇹🇳 Tunisia Open Government Data RAG | "
