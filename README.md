@@ -219,18 +219,42 @@ separate retrieval logic and add metadata helpers, etc.
 | src/retriever.py | Centralize all retrieval logic (get_retriever, filters, MMR, hybrid search) | We are adding more advanced filtering and citations                  | Keeps query.py and app.py clean and consistent       |
 | src/utils.py     | Small helper functions (extract_gouvernorat, format citations, statistics, etc.) | We need source citations and better governorate handling             | Avoids code duplication and improves readability     |
 
-## Basic Retrieval + Citation Tests
+## Recommended Test Questions
 
-Recommended Test Questions
+Basic Functionality Tests:
 
 ```text
-text1. What is the address of ENIT?
+What are the public universities in Tunis?
+List the private schools in Sfax.
+Where is the ENIT located?
+```
 
-2. List universities in Tunis
+Citation & Source Verification:
 
-3. Show me some private schools in Sfax
+```text
+Show me information about INSAT including its address and governorate.
+What type of establishment is the École Nationale d'Ingénieurs de Sfax?
+Give me a list of secondary schools in Ariana.
+```
 
-4. Tell me about engineering schools in Tunisia
+Filtering Tests:
 
-5. Where is the INSAT located?
+```text
+Show me all public higher education institutions in Sousse.
+Are there any private schools in Ben Arous?
+```
+
+Edge Cases & Robustness:
+
+```text
+How many establishments are there in total? (should trigger stats if you use --stats, otherwise test normal response)
+Tell me about a school that doesn't exist. (should return graceful "not found" message)
+What is the population of Tunis? (should return "not found" since it's education data only)
+```
+
+Follow-up Questions (to test history):
+
+```text
+First ask: Universities in Tunis?
+Then follow up with: Which one is the oldest? or Show me more details about the first one.
 ```
