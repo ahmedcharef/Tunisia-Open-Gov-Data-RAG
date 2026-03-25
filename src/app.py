@@ -20,7 +20,7 @@ from typing import List
 
 from src.config import Config
 from src.rag_service import RAGService
-from src.retriever import get_vectorstore_stats, get_retriever
+from src.retriever import get_vectorstore_stats, get_available_governorates
 
 load_dotenv()
 
@@ -46,16 +46,20 @@ def get_rag_service():
 
 service = get_rag_service()
 
-# ====================== TABS FOR NAVIGATION ======================
+# Load available governorates dynamically
+available_govs = ["All"] + get_available_governorates()
+
+# ====================== TABS ======================
 tab1, tab2 = st.tabs(["💬 Chat Assistant", "📊 Statistics Dashboard"])
 
-# ====================== SIDEBAR (Common) ======================
+# ====================== SIDEBAR ======================
 with st.sidebar:
     st.header("⚙️ Settings")
+    
     k_value = st.slider(
-        "Number of documents to retrieve (k)",
-        min_value=4,
-        max_value=20,
+        "Number of documents to retrieve (k)", 
+        min_value=4, 
+        max_value=20, 
         value=8,
         help="Higher values provide more context but may slow down responses"
     )
@@ -63,8 +67,7 @@ with st.sidebar:
     st.markdown("### Governorate Filter")
     selected_gov = st.selectbox(
         "Governorate",
-        options=["All", "TUNIS", "SFAX", "SOUSSE", "ARIANA", "BEN AROUS", "MANOUBA",
-                 "NABEUL", "BIZERTE", "MONASTIR", "MAHDIA", "KAIROUAN", "GAFSA", "MEDENINE"],
+        options=available_govs,
         index=0
     )
 
@@ -74,7 +77,8 @@ with st.sidebar:
 
     st.markdown("---")
     st.caption(
-        f"Model: **{Config.OPENROUTER_MODEL if Config.LLM_PROVIDER == 'openrouter' else Config.OLLAMA_MODEL}**")
+        f"Model: **{Config.OPENROUTER_MODEL if Config.LLM_PROVIDER == 'openrouter' else Config.OLLAMA_MODEL}**"
+    )
 
 # ====================== TAB 1: CHAT ASSISTANT ======================
 with tab1:
@@ -86,7 +90,7 @@ with tab1:
             st.markdown(message["content"])
 
     if prompt := st.chat_input("Ask a question about educational institutions in Tunisia..."):
-
+        
         st.session_state.chat_history.append({"role": "user", "content": prompt})
         with st.chat_message("user"):
             st.markdown(prompt)
@@ -94,9 +98,10 @@ with tab1:
         with st.chat_message("assistant"):
             with st.spinner("Searching the database..."):
                 try:
+                    # Use shared service (no need to convert history manually)
                     result = service.query(
                         user_input=prompt,
-                        chat_history=st.session_state.chat_history[:-1],   # ← This must be list of dicts
+                        chat_history=st.session_state.chat_history[:-1],   # list of dicts
                         k=k_value
                     )
 
@@ -114,6 +119,7 @@ with tab1:
 
                 except Exception as e:
                     st.error(f"An error occurred while generating the response: {str(e)}")
+
 # ====================== TAB 2: STATISTICS DASHBOARD ======================
 with tab2:
     st.subheader("📊 Database Statistics")
@@ -123,26 +129,23 @@ with tab2:
 
         col1, col2, col3 = st.columns(3)
         with col1:
-            st.metric("Total Establishments", f"{stats['total_documents']:,}")
+            st.metric("Total Establishments", f"{stats.get('total_documents', 0):,}")
         with col2:
-            st.metric("Collection Name", stats['collection_name'])
+            st.metric("Collection Name", stats.get('collection_name', 'N/A'))
         with col3:
             st.metric("Status", "✅ Ready")
 
         st.markdown("---")
-
-        # Breakdown by Governorate (Example - can be expanded later)
+        
         st.subheader("Governorate Distribution")
-        st.info("📌 Detailed governorate-wise breakdown coming soon. "
-                "Currently showing total records from the vector database.")
+        st.info("📌 Detailed governorate breakdown and charts coming in the next update.")
 
-        # Future enhancement placeholder
         st.markdown("""
-        **Planned Dashboard Features:**
-        - Breakdown by Governorate
-        - Public vs Private Schools
-        - Higher Education vs School Level
-        - Top Establishment Types
+        **Planned Enhancements:**
+        - Governorate-wise counts
+        - Public vs Private distribution
+        - Institution type breakdown
+        - Interactive charts
         """)
 
     except Exception as e:

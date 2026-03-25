@@ -3,23 +3,43 @@ Utility functions for the Tunisia Education RAG project.
 Includes helper functions for governorate extraction and source citation formatting.
 """
 
+from src.retriever import get_available_governorates
+
 def extract_gouvernorat(query: str) -> str | None:
-    """Extract governorate name from user query using simple keyword matching."""
+    """Improved governorate extraction with fuzzy matching."""
     if not query:
         return None
     
-    query_lower = query.lower()
-    governorates = {
-        "tunis", "sfax", "sousse", "ariana", "ben arous", "manouba", "nabeul",
-        "bizerte", "béja", "jendouba", "kairouan", "kasserine", "gafsa", "medenine",
-        "gabes", "kebili", "tataouine", "zaghouan", "siliana", "mahdia", "monastir", "tozeur"
+    query_lower = query.lower().strip()
+    available_govs = get_available_governorates()
+    
+    # Direct match (case insensitive)
+    for gov in available_govs:
+        if gov.lower() in query_lower:
+            return gov.upper()
+    
+    # Partial / fuzzy match (e.g., "sfaxien", "tunisie", "sous")
+    fuzzy_map = {
+        "tunis": "TUNIS",
+        "sfax": "SFAX",
+        "sousse": "SOUSSE",
+        "ariana": "ARIANA",
+        "ben arous": "BEN AROUS",
+        "manouba": "MANOUBA",
+        "nabeul": "NABEUL",
+        "bizerte": "BIZERTE",
+        "monastir": "MONASTIR",
+        "mahdia": "MAHDIA",
+        "kairouan": "KAIROUAN",
+        "gafsa": "GAFSA",
+        "medenine": "MEDENINE"
     }
     
-    for gov in governorates:
-        if gov in query_lower:
-            return gov.upper()
+    for key, value in fuzzy_map.items():
+        if key in query_lower:
+            return value
+    
     return None
-
 
 def format_source_citation(doc) -> str:
     """

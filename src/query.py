@@ -2,18 +2,12 @@
 """
 query.py - Command Line Interface for Tunisia Education RAG
 
-This is the CLI version of the RAG application.
-It allows users to query Tunisian educational institutions (schools and universities)
-using natural language.
-
 Features:
 - Single query mode (--query)
 - Interactive chat mode
-- Governorate-based filtering
+- Dynamic governorate-based filtering (extracted from actual data)
 - Source citations
 - Database statistics (--stats)
-
-Uses the shared RAGService layer for consistency with the Streamlit UI.
 """
 
 import argparse
@@ -22,7 +16,8 @@ from typing import List, Tuple
 
 from src.config import Config, logger
 from src.rag_service import RAGService
-from src.retriever import get_vectorstore_stats
+from src.retriever import get_vectorstore_stats, get_available_governorates
+from src.utils import extract_gouvernorat
 
 def main():
     parser = argparse.ArgumentParser(description="Tunisia Education RAG CLI")
@@ -34,28 +29,46 @@ def main():
     service = RAGService()
 
     if args.stats:
-        stats = get_vectorstore_stats()
-        print(f"📊 Total establishments in database: {stats['total_documents']:,}")
+        try:
+            stats = get_vectorstore_stats()
+            print(f"📊 Total establishments in database: {stats['total_documents']:,}")
+            print(f"   Collection: {stats.get('collection_name', 'N/A')}")
+        except Exception as e:
+            logger.error(f"Failed to retrieve stats: {e}")
+            print("❌ Could not retrieve statistics.")
         return
 
     chat_history: List[Tuple[str, str]] = []
 
     if args.query:
-        result = service.query(args.query, chat_history, k=args.k)
-        print("\n🤖 Response:\n")
-        print(result["answer"])
+        try:
+            result = service.query(args.query, chat_history, k=args.k)
+            print("\n🤖 Response:\n")
+            print(result["answer"])
 
-        if result["sources"]:
-            print("\n📚 Sources:")
-            for source in result["sources"]:
-                print(f"   • {source}")
+            if result.get("sources"):
+                print("\n📚 Sources:")
+                for source in result["sources"]:
+                    print(f"   • {source}")
+        except Exception as e:
+            logger.error(f"Error processing query: {e}")
+            print("❌ An error occurred while processing your question.")
         return
 
-    # Interactive Mode
-    print("=" * 80)
-    print("   🇹🇳 Tunisia Education RAG")
+    # ====================== Interactive Mode ======================
+    print("=" * 85)
+    print("   🇹🇳 Tunisia Education RAG - Educational Institutions")
     print("   Type 'exit', 'quit', or 'clear' to manage conversation")
-    print("=" * 80)
+    print("=" * 85)
+
+    # Show available governorates for user awareness
+    try:
+        available_govs = get_available_governorates()
+        if available_govs:
+            print(f"Available Governorates: {', '.join(available_govs[:10])} ...")
+            print("-" * 85)
+    except Exception:
+        pass
 
     while True:
         try:
@@ -67,22 +80,24 @@ def main():
 
             if user_input.lower() == "clear":
                 chat_history.clear()
-                print("🧹 History cleared.")
+                print("🧹 Chat history cleared.")
                 continue
 
             if not user_input:
                 continue
 
+            # Process query using shared service
             result = service.query(user_input, chat_history, k=args.k)
 
             print(f"\n🤖 Response:\n{result['answer']}\n")
 
-            if result["sources"]:
+            if result.get("sources"):
                 print("📚 Sources:")
                 for source in result["sources"]:
                     print(f"   • {source}")
                 print("")
 
+            # Update history
             chat_history.extend([("human", user_input), ("ai", result["answer"])])
             if len(chat_history) > 10:
                 chat_history = chat_history[-10:]
@@ -91,7 +106,7 @@ def main():
             print("\n\n👋 Stopped by user.")
             break
         except Exception as e:
-            logger.error(f"Unexpected error: {e}")
+            logger.error(f"Unexpected error in interactive mode: {e}")
             print("❌ An error occurred. Please try again.")
 
 if __name__ == "__main__":
