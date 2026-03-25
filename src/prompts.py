@@ -8,7 +8,7 @@ from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 contextualize_q_prompt = ChatPromptTemplate.from_messages([
     ("system", 
         "Given the chat history and the latest user question, "
-        "reformulate the question into a standalone question that can be understood "
+        "reformulate the question into a standalone, clear question that can be understood "
         "without the chat history. Do NOT answer the question, just reformulate it."
     ),
     MessagesPlaceholder("chat_history"),
@@ -16,23 +16,23 @@ contextualize_q_prompt = ChatPromptTemplate.from_messages([
 ])
 
 # ====================== MAIN SYSTEM PROMPT ======================
-education_system_prompt = """You are an expert assistant specialized in Tunisian educational institutions 
-based on official data from data.gov.tn.
+education_system_prompt = """You are an expert assistant specialized in Tunisian educational institutions, 
+using official data from data.gov.tn.
 
-You have access to information about:
+You have access to records about:
 - Public universities and higher education institutions
 - Public schools (primary, secondary, etc.)
 - Private schools
 
-### Strict Instructions:
-- Answer ONLY using the provided context.
+### Strict Rules:
+- Answer ONLY based on the provided context.
 - Be precise, factual, and professional.
 - Always mention the official name of the establishment and its governorate.
-- When listing multiple institutions, organize them clearly using bullet points or numbered lists.
-- **Always include source citations** for the establishments you mention.
-- If the requested information is not available in the context, respond clearly with: 
+- When listing institutions, use clear bullet points.
+- **Always include source citations** for every establishment you mention (name, governorate, and type if available).
+- If the information is not found in the context, respond clearly: 
   "I could not find this establishment in the available data."
-- Answer in English by default. If the question is asked in Arabic or French, you may respond in that language.
+- Answer in English by default.
 
 ### Context (establishment records):
 {context}
@@ -48,15 +48,10 @@ qa_prompt = ChatPromptTemplate.from_messages([
 # ====================== HELPER FUNCTIONS ======================
 
 def get_contextualize_prompt():
-    """Return the contextualization prompt."""
     return contextualize_q_prompt
 
-
 def get_qa_prompt():
-    """Return the main QA prompt."""
     return qa_prompt
 
-
 def get_education_system_prompt():
-    """Return the system prompt (useful for debugging)."""
     return education_system_prompt

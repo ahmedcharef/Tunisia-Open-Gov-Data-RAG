@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
-query.py - Tunisian Education Establishments RAG (CLI)
-With source citations and robust error handling
+query.py - Tunisian Education RAG (LCEL Version)
+Clean, modern implementation without langchain-classic
 """
 
 import argparse
@@ -9,20 +9,17 @@ import sys
 from typing import List, Tuple
 
 from dotenv import load_dotenv
-
 from langchain_openai import ChatOpenAI
 from langchain_ollama import ChatOllama
-
-from langchain_classic.chains import create_history_aware_retriever, create_retrieval_chain
-from langchain_classic.chains.combine_documents import create_stuff_documents_chain
-
-import warnings
-import logging
+from langchain_chroma import Chroma
+from langchain_huggingface import HuggingFaceEmbeddings
+from langchain_core.output_parsers import StrOutputParser
+from langchain_core.runnables import RunnablePassthrough
 
 from src.config import Config, logger
 from src.prompts import get_contextualize_prompt, get_qa_prompt
 from src.retriever import get_retriever
-from src.utils import extract_gouvernorat, format_source_citation
+from src.utils import extract_gouvernorat
 
 load_dotenv()
 
@@ -31,7 +28,15 @@ warnings.filterwarnings("ignore", message=".*position_ids.*UNEXPECTED.*")
 logging.getLogger("sentence_transformers").setLevel(logging.WARNING)
 logging.getLogger("transformers").setLevel(logging.ERROR)
 
-# ====================== LLM SETUP ======================
+# ====================== VECTOR STORE ======================
+embeddings = HuggingFaceEmbeddings(model_name=Config.EMBEDDING_MODEL)
+vectorstore = Chroma(
+    persist_directory=Config.CHROMA_PERSIST_DIR,
+    embedding_function=embeddings,
+    collection_name=Config.COLLECTION_NAME,
+)
+
+# ====================== LLM ======================
 def get_llm():
     try:
         if Config.LLM_PROVIDER == "openrouter":
@@ -61,20 +66,41 @@ def get_llm():
 
 llm = get_llm()
 
-# ====================== PROMPTS & BASE CHAINS ======================
+# ====================== PROMPTS ======================
 contextualize_prompt = get_contextualize_prompt()
 qa_prompt = get_qa_prompt()
 
-# Base chains
-base_retriever = get_retriever(k=Config.RETRIEVER_K)
-history_aware_retriever = create_history_aware_retriever(llm, base_retriever, contextualize_prompt)
-question_answer_chain = create_stuff_documents_chain(llm, qa_prompt)
-rag_chain = create_retrieval_chain(history_aware_retriever, question_answer_chain)
+# ====================== LCEL CHAIN BUILDER ======================
+
+def create_rag_chain(retriever):
+    """Create a full RAG chain using LCEL."""
+
+    # Step 1: Contextualize the question based on history
+    contextualize_chain = (
+        contextualize_prompt
+        | llm
+        | StrOutputParser()
+    )
+
+    # Step 2: Main RAG pipeline
+    rag_chain = (
+        {
+            "context": contextualize_chain | retriever,
+            "input": RunnablePassthrough(),
+            "chat_history": RunnablePassthrough(),
+        }
+        | qa_prompt
+        | llm
+        | StrOutputParser()
+    )
+
+    return rag_chain
 
 
 # ====================== MAIN ======================
 def main():
-    parser = argparse.ArgumentParser(description="Tunisia Education RAG CLI")
+    parser = argparse.ArgumentParser(
+        description="Tunisia Education RAG CLI (LCEL)")
     parser.add_argument("--query", type=str, help="Single query mode")
     parser.add_argument("--k", type=int, default=Config.RETRIEVER_K)
     parser.add_argument("--stats", action="store_true")
@@ -96,70 +122,63 @@ def main():
         try:
             gov = extract_gouvernorat(args.query)
             retriever = get_retriever(k=args.k, gouvernorat=gov)
+            chain = create_rag_chain(retriever)
 
-            history_aware = create_history_aware_retriever(llm, retriever, contextualize_prompt)
-            chain = create_retrieval_chain(history_aware, question_answer_chain)
-
-            response = chain.invoke({"input": args.query, "chat_history": chat_history})
-            answer = response["answer"]
-            print("\n🤖 Réponse:\n")
+            answer = chain.invoke({
+                "input": args.query,
+                "chat_history": chat_history
+            })
+            print("\n🤖 Response:\n")
             print(answer)
         except Exception as e:
             logger.error(f"Error processing query: {e}")
-            print("❌ Une erreur est survenue lors du traitement de votre question.")
+            print("❌ An error occurred while processing your question.")
         return
 
     # ====================== Interactive Mode ======================
     print("=" * 80)
-    print("   🇹🇳 Tunisia Education RAG - Établissements scolaires & universitaires")
+    print("   🇹🇳 Tunisia Education RAG - Educational Institutions")
     print("   Type 'exit', 'quit', or 'clear' to manage conversation")
     print("=" * 80)
 
     while True:
         try:
-            user_input = input("\nQuestion > ").strip()
+            user_input = input("\nQuestion (en/fr/ar) > ").strip()
 
             if user_input.lower() in ["exit", "quit", "q"]:
-                print("👋 Au revoir !")
+                print("👋 Goodbye!")
                 break
 
             if user_input.lower() == "clear":
                 chat_history.clear()
-                print("🧹 Historique effacé.")
+                print("🧹 Chat history cleared.")
                 continue
 
             if not user_input:
                 continue
 
-            # Process query with robust error handling
             gov = extract_gouvernorat(user_input)
-            current_retriever = get_retriever(k=args.k, gouvernorat=gov)
+            retriever = get_retriever(k=args.k, gouvernorat=gov)
+            chain = create_rag_chain(retriever)
 
-            current_history_retriever = create_history_aware_retriever(
-                llm, current_retriever, contextualize_prompt
-            )
-            current_rag_chain = create_retrieval_chain(
-                current_history_retriever, question_answer_chain
-            )
-
-            response = current_rag_chain.invoke({
+            answer = chain.invoke({
                 "input": user_input,
                 "chat_history": chat_history
             })
 
-            answer = response["answer"]
-            print(f"\n🤖 Réponse:\n{answer}\n")
+            print(f"\n🤖 Response:\n{answer}\n")
 
             chat_history.extend([("human", user_input), ("ai", answer)])
             if len(chat_history) > 10:
                 chat_history = chat_history[-10:]
 
         except KeyboardInterrupt:
-            print("\n\n👋 Arrêt par l'utilisateur.")
+            print("\n\n👋 Stopped by user.")
             break
         except Exception as e:
-            logger.error(f"Unexpected error in interactive mode: {e}")
-            print("❌ Une erreur inattendue est survenue. Veuillez réessayer.")
+            logger.error(f"Error in interactive mode: {e}")
+            print("❌ An unexpected error occurred. Please try again.")
+
 
 if __name__ == "__main__":
     main()

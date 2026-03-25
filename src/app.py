@@ -6,9 +6,8 @@ from langchain_openai import ChatOpenAI
 from langchain_ollama import ChatOllama
 from langchain_chroma import Chroma
 from langchain_huggingface import HuggingFaceEmbeddings
-
-from langchain_classic.chains import create_history_aware_retriever, create_retrieval_chain
-from langchain_classic.chains.combine_documents import create_stuff_documents_chain
+from langchain_core.output_parsers import StrOutputParser
+from langchain_core.runnables import RunnablePassthrough
 
 from src.config import Config
 from src.prompts import get_contextualize_prompt, get_qa_prompt
@@ -25,7 +24,7 @@ st.set_page_config(
 )
 
 st.title("🎓 Tunisia Education RAG")
-st.markdown("**Intelligent Assistant for Tunisian Schools & Universities**")
+st.markdown("**Intelligent Assistant for Tunisian Educational Institutions**")
 st.caption("Official data from data.gov.tn")
 
 # ====================== SESSION STATE ======================
@@ -80,13 +79,41 @@ llm = get_llm()
 contextualize_prompt = get_contextualize_prompt()
 qa_prompt = get_qa_prompt()
 
+# ====================== LCEL CHAIN BUILDER ======================
+def create_rag_chain(retriever):
+    """Create RAG chain using LCEL (same as query.py)"""
+    contextualize_chain = (
+        contextualize_prompt 
+        | llm 
+        | StrOutputParser()
+    )
+
+    rag_chain = (
+        {
+            "context": contextualize_chain | retriever,
+            "input": RunnablePassthrough(),
+            "chat_history": RunnablePassthrough(),
+        }
+        | qa_prompt
+        | llm
+        | StrOutputParser()
+    )
+    return rag_chain
+
+
 # ====================== SIDEBAR ======================
 with st.sidebar:
     st.header("⚙️ Settings")
     
-    k_value = st.slider("Number of documents to retrieve (k)", min_value=4, max_value=20, value=8)
-    
-    st.markdown("### Filter by Governorate")
+    k_value = st.slider(
+        "Number of documents to retrieve (k)", 
+        min_value=4, 
+        max_value=20, 
+        value=8,
+        help="Higher values provide more context but may slow down responses"
+    )
+
+    st.markdown("### Governorate Filter")
     selected_gov = st.selectbox(
         "Governorate",
         options=["All", "TUNIS", "SFAX", "SOUSSE", "ARIANA", "BEN AROUS", "MANOUBA",
@@ -101,12 +128,14 @@ with st.sidebar:
     st.markdown("---")
     st.caption(f"Model: **{Config.OPENROUTER_MODEL if Config.LLM_PROVIDER == 'openrouter' else Config.OLLAMA_MODEL}**")
 
-# ====================== MAIN CHAT ======================
+# ====================== CHAT INTERFACE ======================
 for message in st.session_state.chat_history:
     with st.chat_message(message["role"]):
         st.markdown(message["content"])
 
-if prompt := st.chat_input("Ask a question about Tunisian educational institutions..."):
+if prompt := st.chat_input("Ask a question about educational institutions in Tunisia..."):
+    
+    # Add user message
     st.session_state.chat_history.append({"role": "user", "content": prompt})
     with st.chat_message("user"):
         st.markdown(prompt)
@@ -114,26 +143,30 @@ if prompt := st.chat_input("Ask a question about Tunisian educational institutio
     with st.chat_message("assistant"):
         with st.spinner("Searching the database..."):
             try:
-                current_retriever = get_retriever(
-                    k=k_value, 
-                    gouvernorat=selected_gov if selected_gov != "All" else None
-                )
+                # Apply governorate filter if selected
+                gov_filter = selected_gov if selected_gov != "All" else None
+                retriever = get_retriever(k=k_value, gouvernorat=gov_filter)
 
-                history_aware = create_history_aware_retriever(llm, current_retriever, contextualize_prompt)
-                chain = create_retrieval_chain(history_aware, create_stuff_documents_chain(llm, qa_prompt))
+                # Create LCEL chain
+                rag_chain = create_rag_chain(retriever)
 
-                response = chain.invoke({
+                response = rag_chain.invoke({
                     "input": prompt,
                     "chat_history": [(m["role"], m["content"]) for m in st.session_state.chat_history[:-1]]
                 })
 
-                answer = response["answer"]
+                answer = response
                 st.markdown(answer)
 
+                # Add to history
                 st.session_state.chat_history.append({"role": "assistant", "content": answer})
 
             except Exception as e:
                 st.error(f"An error occurred while generating the response: {str(e)}")
 
 st.markdown("---")
-st.caption("🇹🇳 Tunisia Open Government Data RAG | Built with LangChain + Streamlit")
+st.caption(
+    "🇹🇳 Tunisia Open Government Data RAG | "
+    "Data source: data.gov.tn | "
+    "Built with LangChain + Streamlit"
+)
