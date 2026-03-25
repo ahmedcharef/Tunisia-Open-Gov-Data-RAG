@@ -25,8 +25,8 @@ st.set_page_config(
 )
 
 st.title("🎓 Tunisia Education RAG")
-st.markdown("**Assistant intelligent sur les établissements scolaires et universitaires en Tunisie**")
-st.caption("Données officielles • data.gov.tn")
+st.markdown("**Intelligent Assistant for Tunisian Schools & Universities**")
+st.caption("Official data from data.gov.tn")
 
 # ====================== SESSION STATE ======================
 if "chat_history" not in st.session_state:
@@ -40,32 +40,39 @@ if "vectorstore" not in st.session_state:
             embedding_function=embeddings,
             collection_name=Config.COLLECTION_NAME,
         )
-        st.success("✅ Base de données chargée avec succès", icon="✅")
+        st.success("✅ Database loaded successfully", icon="✅")
     except Exception as e:
-        st.error(f"❌ Impossible de charger la base de données : {e}")
+        st.error(f"❌ Failed to load database: {e}")
         st.stop()
 
-# ====================== LLM ======================
+# ====================== LLM SETUP (Fixed warning) ======================
 @st.cache_resource
 def get_llm():
-    if Config.LLM_PROVIDER == "openrouter":
-        return ChatOpenAI(
-            model=Config.OPENROUTER_MODEL,
-            api_key=Config.OPENROUTER_API_KEY,
-            base_url="https://openrouter.ai/api/v1",
-            temperature=0.25,
-            max_tokens=2048,
-            extra_headers={
-                "HTTP-Referer": "https://github.com/ahmedcharef/Tunisia-Open-Gov-Data-RAG",
-                "X-Title": "Tunisia Education RAG",
-            },
-        )
-    else:
-        return ChatOllama(
-            model=Config.OLLAMA_MODEL,
-            temperature=0.25,
-            num_ctx=32768,
-        )
+    try:
+        if Config.LLM_PROVIDER == "openrouter":
+            return ChatOpenAI(
+                model=Config.OPENROUTER_MODEL,
+                api_key=Config.OPENROUTER_API_KEY,
+                base_url="https://openrouter.ai/api/v1",
+                temperature=0.25,
+                max_tokens=2048,
+                model_kwargs={
+                    "extra_headers": {
+                        "HTTP-Referer": "https://github.com/ahmedcharef/Tunisia-Open-Gov-Data-RAG",
+                        "X-Title": "Tunisia Education RAG",
+                    }
+                },
+            )
+        else:
+            return ChatOllama(
+                model=Config.OLLAMA_MODEL,
+                temperature=0.25,
+                num_ctx=32768,
+            )
+    except Exception as e:
+        st.error(f"Failed to initialize LLM: {e}")
+        st.stop()
+
 
 llm = get_llm()
 
@@ -75,39 +82,42 @@ qa_prompt = get_qa_prompt()
 
 # ====================== SIDEBAR ======================
 with st.sidebar:
-    st.header("⚙️ Paramètres")
+    st.header("⚙️ Settings")
     
-    k_value = st.slider("Nombre de documents à récupérer (k)", min_value=4, max_value=20, value=8)
+    k_value = st.slider("Number of documents to retrieve (k)", min_value=4, max_value=20, value=8)
     
-    st.markdown("### Filtre par Gouvernorat")
+    st.markdown("### Filter by Governorate")
     selected_gov = st.selectbox(
-        "Gouvernorat",
-        options=["Tous", "TUNIS", "SFAX", "SOUSSE", "ARIANA", "BEN AROUS", "MANOUBA",
+        "Governorate",
+        options=["All", "TUNIS", "SFAX", "SOUSSE", "ARIANA", "BEN AROUS", "MANOUBA",
                  "NABEUL", "BIZERTE", "MONASTIR", "MAHDIA", "KAIROUAN", "GAFSA", "MEDENINE"],
         index=0
     )
 
-    if st.button("🔄 Réinitialiser la conversation"):
+    if st.button("🔄 Reset Conversation"):
         st.session_state.chat_history = []
         st.rerun()
 
     st.markdown("---")
-    st.caption(f"Modèle : **{Config.OPENROUTER_MODEL if Config.LLM_PROVIDER == 'openrouter' else Config.OLLAMA_MODEL}**")
+    st.caption(f"Model: **{Config.OPENROUTER_MODEL if Config.LLM_PROVIDER == 'openrouter' else Config.OLLAMA_MODEL}**")
 
-# ====================== MAIN CHAT ======================
+# ====================== MAIN CHAT INTERFACE ======================
 for message in st.session_state.chat_history:
     with st.chat_message(message["role"]):
         st.markdown(message["content"])
 
-if prompt := st.chat_input("Posez votre question sur les établissements en Tunisie..."):
+if prompt := st.chat_input("Ask a question about Tunisian educational institutions..."):
     st.session_state.chat_history.append({"role": "user", "content": prompt})
     with st.chat_message("user"):
         st.markdown(prompt)
 
     with st.chat_message("assistant"):
-        with st.spinner("Recherche dans la base de données..."):
+        with st.spinner("Searching the database..."):
             try:
-                current_retriever = get_retriever(k=k_value, gouvernorat=selected_gov if selected_gov != "Tous" else None)
+                current_retriever = get_retriever(
+                    k=k_value, 
+                    gouvernorat=selected_gov if selected_gov != "All" else None
+                )
 
                 history_aware = create_history_aware_retriever(llm, current_retriever, contextualize_prompt)
                 chain = create_retrieval_chain(history_aware, create_stuff_documents_chain(llm, qa_prompt))
@@ -123,11 +133,9 @@ if prompt := st.chat_input("Posez votre question sur les établissements en Tuni
                 st.session_state.chat_history.append({"role": "assistant", "content": answer})
 
             except Exception as e:
-                st.error(f"Erreur lors de la génération : {str(e)}")
+                st.error(f"An error occurred while generating the response: {str(e)}")
 
 st.markdown("---")
-st.caption(
-    "🇹🇳 Tunisia Open Government Data RAG | "
-    "Données : data.gov.tn | "
-    "Construit avec LangChain + Streamlit"
+st.caption("🇹🇳 Tunisia Open Government Data RAG | "
+"Built with LangChain + Streamlit"
 )

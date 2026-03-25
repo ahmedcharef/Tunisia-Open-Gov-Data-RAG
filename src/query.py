@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 query.py - Tunisian Education Establishments RAG (CLI)
-Using centralized retriever and utils
+With source citations and robust error handling
 """
 
 import argparse
@@ -19,7 +19,6 @@ from langchain_classic.chains.combine_documents import create_stuff_documents_ch
 import warnings
 import logging
 
-# Clean imports from src
 from src.config import Config, logger
 from src.prompts import get_contextualize_prompt, get_qa_prompt
 from src.retriever import get_retriever
@@ -34,34 +33,37 @@ logging.getLogger("transformers").setLevel(logging.ERROR)
 
 # ====================== LLM SETUP ======================
 def get_llm():
-    if Config.LLM_PROVIDER == "openrouter":
-        return ChatOpenAI(
-            model=Config.OPENROUTER_MODEL,
-            api_key=Config.OPENROUTER_API_KEY,
-            base_url="https://openrouter.ai/api/v1",
-            temperature=Config.TEMPERATURE,
-            max_tokens=Config.MAX_TOKENS,
-            extra_headers={
-                "HTTP-Referer": "https://github.com/ahmedcharef/Tunisia-Open-Gov-Data-RAG",
-                "X-Title": "Tunisia Education RAG",
-            },
-        )
-    else:
-        return ChatOllama(
-            model=Config.OLLAMA_MODEL,
-            temperature=Config.TEMPERATURE,
-            num_ctx=32768,
-        )
+    try:
+        if Config.LLM_PROVIDER == "openrouter":
+            return ChatOpenAI(
+                model=Config.OPENROUTER_MODEL,
+                api_key=Config.OPENROUTER_API_KEY,
+                base_url="https://openrouter.ai/api/v1",
+                temperature=Config.TEMPERATURE,
+                max_tokens=Config.MAX_TOKENS,
+                extra_headers={
+                    "HTTP-Referer": "https://github.com/ahmedcharef/Tunisia-Open-Gov-Data-RAG",
+                    "X-Title": "Tunisia Education RAG",
+                },
+            )
+        else:
+            return ChatOllama(
+                model=Config.OLLAMA_MODEL,
+                temperature=Config.TEMPERATURE,
+                num_ctx=32768,
+            )
+    except Exception as e:
+        logger.error(f"Failed to initialize LLM: {e}")
+        raise
 
 
 llm = get_llm()
-logger.info(f"LLM initialized → {Config.OPENROUTER_MODEL if Config.LLM_PROVIDER == 'openrouter' else Config.OLLAMA_MODEL}")
 
 # ====================== PROMPTS & BASE CHAINS ======================
 contextualize_prompt = get_contextualize_prompt()
 qa_prompt = get_qa_prompt()
 
-# Base chains (created once)
+# Base chains
 base_retriever = get_retriever(k=Config.RETRIEVER_K)
 history_aware_retriever = create_history_aware_retriever(llm, base_retriever, contextualize_prompt)
 question_answer_chain = create_stuff_documents_chain(llm, qa_prompt)
@@ -72,29 +74,37 @@ rag_chain = create_retrieval_chain(history_aware_retriever, question_answer_chai
 def main():
     parser = argparse.ArgumentParser(description="Tunisia Education RAG CLI")
     parser.add_argument("--query", type=str, help="Single query mode")
-    parser.add_argument("--k", type=int, default=Config.RETRIEVER_K, help="Number of documents to retrieve")
-    parser.add_argument("--stats", action="store_true", help="Show database statistics")
+    parser.add_argument("--k", type=int, default=Config.RETRIEVER_K)
+    parser.add_argument("--stats", action="store_true")
     args = parser.parse_args()
 
     if args.stats:
-        from src.retriever import get_vectorstore_stats
-        stats = get_vectorstore_stats()
-        print(f"📊 Total establishments in database: {stats['total_documents']:,}")
+        try:
+            from src.retriever import get_vectorstore_stats
+            stats = get_vectorstore_stats()
+            print(f"📊 Total establishments in database: {stats['total_documents']:,}")
+        except Exception as e:
+            logger.error(f"Failed to get stats: {e}")
+            print("❌ Could not retrieve statistics.")
         return
 
     chat_history: List[Tuple[str, str]] = []
 
     if args.query:
-        gov = extract_gouvernorat(args.query)
-        retriever = get_retriever(k=args.k, gouvernorat=gov)
+        try:
+            gov = extract_gouvernorat(args.query)
+            retriever = get_retriever(k=args.k, gouvernorat=gov)
 
-        # Build chain for this query
-        history_aware = create_history_aware_retriever(llm, retriever, contextualize_prompt)
-        chain = create_retrieval_chain(history_aware, question_answer_chain)
+            history_aware = create_history_aware_retriever(llm, retriever, contextualize_prompt)
+            chain = create_retrieval_chain(history_aware, question_answer_chain)
 
-        response = chain.invoke({"input": args.query, "chat_history": chat_history})
-        print("\n🤖 Réponse:\n")
-        print(response["answer"])
+            response = chain.invoke({"input": args.query, "chat_history": chat_history})
+            answer = response["answer"]
+            print("\n🤖 Réponse:\n")
+            print(answer)
+        except Exception as e:
+            logger.error(f"Error processing query: {e}")
+            print("❌ Une erreur est survenue lors du traitement de votre question.")
         return
 
     # ====================== Interactive Mode ======================
@@ -119,11 +129,10 @@ def main():
             if not user_input:
                 continue
 
-            # Auto-detect governorate and get appropriate retriever
+            # Process query with robust error handling
             gov = extract_gouvernorat(user_input)
             current_retriever = get_retriever(k=args.k, gouvernorat=gov)
 
-            # Build chain dynamically for current filter
             current_history_retriever = create_history_aware_retriever(
                 llm, current_retriever, contextualize_prompt
             )
@@ -147,8 +156,8 @@ def main():
             print("\n\n👋 Arrêt par l'utilisateur.")
             break
         except Exception as e:
-            logger.error(f"Error during query: {e}")
-            print("❌ Une erreur est survenue.")
+            logger.error(f"Unexpected error in interactive mode: {e}")
+            print("❌ Une erreur inattendue est survenue. Veuillez réessayer.")
 
 if __name__ == "__main__":
     main()

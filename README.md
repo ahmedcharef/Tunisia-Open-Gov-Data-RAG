@@ -209,3 +209,12 @@ python run.py ui
 # With debug mode
 python run.py --debug
 ```
+
+## Centralize all logic
+
+separate retrieval logic and add metadata helpers, etc.
+
+| File              | Purpose                                                                 | Why                                                                 | Benefit                                              |
+|-------------------|-------------------------------------------------------------------------|----------------------------------------------------------------------|------------------------------------------------------|
+| src/retriever.py | Centralize all retrieval logic (get_retriever, filters, MMR, hybrid search) | We are adding more advanced filtering and citations                  | Keeps query.py and app.py clean and consistent       |
+| src/utils.py     | Small helper functions (extract_gouvernorat, format citations, statistics, etc.) | We need source citations and better governorate handling             | Avoids code duplication and improves readability     |
