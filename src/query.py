@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
 """
 query.py - Tunisian Education RAG (LCEL Version)
-Clean, modern implementation without langchain-classic
+With proper source citations and robust error handling
 """
 
 import argparse
 import sys
-from typing import List, Tuple
+from typing import List, Tuple, Dict
 
 from dotenv import load_dotenv
 from langchain_openai import ChatOpenAI
@@ -14,12 +14,12 @@ from langchain_ollama import ChatOllama
 from langchain_chroma import Chroma
 from langchain_huggingface import HuggingFaceEmbeddings
 from langchain_core.output_parsers import StrOutputParser
-from langchain_core.runnables import RunnablePassthrough
+from langchain_core.runnables import RunnablePassthrough, RunnableParallel
 
 from src.config import Config, logger
 from src.prompts import get_contextualize_prompt, get_qa_prompt
 from src.retriever import get_retriever
-from src.utils import extract_gouvernorat
+from src.utils import extract_gouvernorat, format_source_citation
 
 load_dotenv()
 
@@ -70,37 +70,32 @@ llm = get_llm()
 contextualize_prompt = get_contextualize_prompt()
 qa_prompt = get_qa_prompt()
 
-# ====================== LCEL CHAIN BUILDER ======================
-
+# ====================== LCEL CHAIN WITH CITATIONS ======================
 def create_rag_chain(retriever):
-    """Create a full RAG chain using LCEL."""
+    """Create LCEL RAG chain that returns both answer and retrieved documents."""
 
-    # Step 1: Contextualize the question based on history
-    contextualize_chain = (
-        contextualize_prompt
-        | llm
-        | StrOutputParser()
-    )
+    # Contextualize question
+    contextualize_chain = contextualize_prompt | llm | StrOutputParser()
 
-    # Step 2: Main RAG pipeline
+    # Parallel execution: get context + answer
     rag_chain = (
-        {
+        RunnableParallel({
             "context": contextualize_chain | retriever,
             "input": RunnablePassthrough(),
             "chat_history": RunnablePassthrough(),
-        }
-        | qa_prompt
-        | llm
-        | StrOutputParser()
+        })
+        | RunnableParallel({
+            "answer": qa_prompt | llm | StrOutputParser(),
+            "context": RunnablePassthrough() | (lambda x: x["context"])
+        })
     )
-
+    
     return rag_chain
 
 
 # ====================== MAIN ======================
 def main():
-    parser = argparse.ArgumentParser(
-        description="Tunisia Education RAG CLI (LCEL)")
+    parser = argparse.ArgumentParser(description="Tunisia Education RAG CLI")
     parser.add_argument("--query", type=str, help="Single query mode")
     parser.add_argument("--k", type=int, default=Config.RETRIEVER_K)
     parser.add_argument("--stats", action="store_true")
@@ -124,12 +119,25 @@ def main():
             retriever = get_retriever(k=args.k, gouvernorat=gov)
             chain = create_rag_chain(retriever)
 
-            answer = chain.invoke({
+            result = chain.invoke({
                 "input": args.query,
                 "chat_history": chat_history
             })
+
+            answer = result["answer"]
+            context_docs = result.get("context", [])
+
             print("\n🤖 Response:\n")
             print(answer)
+
+            # Show sources
+            if context_docs:
+                print("\n📚 Sources:")
+                for doc in context_docs[:5]:   # Limit to top 5 sources
+                    citation = format_source_citation(doc)
+                    if citation:
+                        print(f"   • {citation}")
+
         except Exception as e:
             logger.error(f"Error processing query: {e}")
             print("❌ An error occurred while processing your question.")
@@ -137,13 +145,13 @@ def main():
 
     # ====================== Interactive Mode ======================
     print("=" * 80)
-    print("   🇹🇳 Tunisia Education RAG - Educational Institutions")
+    print("   🇹🇳 Tunisia Education RAG")
     print("   Type 'exit', 'quit', or 'clear' to manage conversation")
     print("=" * 80)
 
     while True:
         try:
-            user_input = input("\nQuestion (en/fr/ar) > ").strip()
+            user_input = input("\nQuestion > ").strip()
 
             if user_input.lower() in ["exit", "quit", "q"]:
                 print("👋 Goodbye!")
@@ -151,7 +159,7 @@ def main():
 
             if user_input.lower() == "clear":
                 chat_history.clear()
-                print("🧹 Chat history cleared.")
+                print("🧹 History cleared.")
                 continue
 
             if not user_input:
@@ -161,12 +169,24 @@ def main():
             retriever = get_retriever(k=args.k, gouvernorat=gov)
             chain = create_rag_chain(retriever)
 
-            answer = chain.invoke({
+            result = chain.invoke({
                 "input": user_input,
                 "chat_history": chat_history
             })
 
+            answer = result["answer"]
+            context_docs = result.get("context", [])
+
             print(f"\n🤖 Response:\n{answer}\n")
+
+            # Display sources
+            if context_docs:
+                print("📚 Sources:")
+                for doc in context_docs[:5]:
+                    citation = format_source_citation(doc)
+                    if citation:
+                        print(f"   • {citation}")
+                print("")
 
             chat_history.extend([("human", user_input), ("ai", answer)])
             if len(chat_history) > 10:
@@ -177,8 +197,7 @@ def main():
             break
         except Exception as e:
             logger.error(f"Error in interactive mode: {e}")
-            print("❌ An unexpected error occurred. Please try again.")
-
+            print("❌ An error occurred. Please try again.")
 
 if __name__ == "__main__":
     main()
