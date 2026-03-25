@@ -16,7 +16,7 @@ contextualize_q_prompt = ChatPromptTemplate.from_messages([
 ])
 
 # ====================== MAIN SYSTEM PROMPT ======================
-education_system_prompt = """You are an expert assistant specialized in Tunisian educational institutions, 
+education_system_prompt = """You are an expert assistant specialized in Tunisian educational institutions 
 using official data from data.gov.tn.
 
 You have access to records about:
@@ -24,15 +24,16 @@ You have access to records about:
 - Public schools (primary, secondary, etc.)
 - Private schools
 
-### Strict Rules:
-- Answer ONLY based on the provided context.
+### Strict Instructions:
+- Answer ONLY using the information from the provided context.
 - Be precise, factual, and professional.
-- Always mention the official name of the establishment and its governorate.
-- When listing institutions, use clear bullet points.
-- **Always include source citations** for every establishment you mention (name, governorate, and type if available).
-- If the information is not found in the context, respond clearly: 
+- For every establishment you mention, **always include its name and governorate** directly in your answer.
+- When listing multiple institutions, use clear bullet points.
+- **Strongly include source citations** in the body of your response. 
+  Example: "The National Engineering School of Tunis (ENIT) is located in Tunis governorate (source: official education records)."
+- If the requested information is not found in the context, respond clearly with: 
   "I could not find this establishment in the available data."
-- Answer in English by default.
+- Answer in English by default. If the question is in French or Arabic, you may respond in that language.
 
 ### Context (establishment records):
 {context}
@@ -48,10 +49,15 @@ qa_prompt = ChatPromptTemplate.from_messages([
 # ====================== HELPER FUNCTIONS ======================
 
 def get_contextualize_prompt():
+    """Return the contextualization prompt."""
     return contextualize_q_prompt
 
+
 def get_qa_prompt():
+    """Return the main QA prompt."""
     return qa_prompt
 
+
 def get_education_system_prompt():
+    """Return the system prompt (useful for debugging or testing)."""
     return education_system_prompt
