@@ -17,10 +17,11 @@ Features:
 import streamlit as st
 from dotenv import load_dotenv
 from typing import List
+import pandas as pd
 
 from src.config import Config
 from src.rag_service import RAGService
-from src.retriever import get_vectorstore_stats, get_available_governorates
+from src.retriever import get_vectorstore_stats, get_available_governorates, get_governorate_breakdown
 
 load_dotenv()
 
@@ -46,7 +47,7 @@ def get_rag_service():
 
 service = get_rag_service()
 
-# Load available governorates dynamically
+# Load available governorates for filter
 available_govs = ["All"] + get_available_governorates()
 
 # ====================== TABS ======================
@@ -90,7 +91,6 @@ with tab1:
             st.markdown(message["content"])
 
     if prompt := st.chat_input("Ask a question about educational institutions in Tunisia..."):
-        
         st.session_state.chat_history.append({"role": "user", "content": prompt})
         with st.chat_message("user"):
             st.markdown(prompt)
@@ -98,10 +98,9 @@ with tab1:
         with st.chat_message("assistant"):
             with st.spinner("Searching the database..."):
                 try:
-                    # Use shared service (no need to convert history manually)
                     result = service.query(
                         user_input=prompt,
-                        chat_history=st.session_state.chat_history[:-1],   # list of dicts
+                        chat_history=st.session_state.chat_history[:-1],
                         k=k_value
                     )
 
@@ -118,7 +117,7 @@ with tab1:
                     })
 
                 except Exception as e:
-                    st.error(f"An error occurred while generating the response: {str(e)}")
+                    st.error(f"An error occurred: {str(e)}")
 
 # ====================== TAB 2: STATISTICS DASHBOARD ======================
 with tab2:
@@ -126,26 +125,44 @@ with tab2:
 
     try:
         stats = get_vectorstore_stats()
+        total_docs = stats.get('total_documents', 0)
 
         col1, col2, col3 = st.columns(3)
         with col1:
-            st.metric("Total Establishments", f"{stats.get('total_documents', 0):,}")
+            st.metric("Total Establishments", f"{total_docs:,}")
         with col2:
-            st.metric("Collection Name", stats.get('collection_name', 'N/A'))
+            st.metric("Collection", Config.COLLECTION_NAME)
         with col3:
             st.metric("Status", "✅ Ready")
 
         st.markdown("---")
-        
-        st.subheader("Governorate Distribution")
-        st.info("📌 Detailed governorate breakdown and charts coming in the next update.")
 
-        st.markdown("""
-        **Planned Enhancements:**
-        - Governorate-wise counts
-        - Public vs Private distribution
-        - Institution type breakdown
-        - Interactive charts
+        # Governorate Breakdown
+        st.subheader("Governorate Distribution")
+        df_gov = get_governorate_breakdown()
+
+        if not df_gov.empty:
+            col1, col2 = st.columns([3, 2])
+            with col1:
+                st.bar_chart(df_gov.set_index("Governorate")[:15])
+            with col2:
+                st.dataframe(
+                    df_gov.head(15),
+                    use_container_width=True,
+                    hide_index=True
+                )
+            
+            st.caption(f"Showing top governorates from a sample of up to 3,000 records.")
+        else:
+            st.info("No governorate information could be extracted from the data.")
+
+        st.markdown("---")
+
+        st.subheader("Key Insights")
+        st.info(f"""
+        - **Total records indexed**: {total_docs:,}
+        - Data includes public universities, public schools, and private schools
+        - Governorate filtering is dynamic based on actual loaded data
         """)
 
     except Exception as e:

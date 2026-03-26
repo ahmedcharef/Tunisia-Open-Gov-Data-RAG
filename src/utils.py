@@ -16,23 +16,36 @@ def extract_gouvernorat(query: str) -> str | None:
     # Direct match (case insensitive)
     for gov in available_govs:
         if gov.lower() in query_lower:
-            return gov.upper()
+            return gov
     
     # Partial / fuzzy match (e.g., "sfaxien", "tunisie", "sous")
     fuzzy_map = {
-        "tunis": "TUNIS",
-        "sfax": "SFAX",
-        "sousse": "SOUSSE",
-        "ariana": "ARIANA",
-        "ben arous": "BEN AROUS",
-        "manouba": "MANOUBA",
-        "nabeul": "NABEUL",
-        "bizerte": "BIZERTE",
-        "monastir": "MONASTIR",
-        "mahdia": "MAHDIA",
-        "kairouan": "KAIROUAN",
-        "gafsa": "GAFSA",
-        "medenine": "MEDENINE"
+        "tunis": "Tunis",
+        "sfax": "Sfax",
+        "sousse": "Sousse",
+        "ariana": "Ariana",
+        "ben arous": "Ben Arous",
+        "manouba": "Manouba",
+        "nabeul": "Nabeul",
+        "bizerte": "Bizerte",
+        "monastir": "Monastir",
+        "mahdia": "Mahdia",
+        "kairouan": "Kairouan",
+        "gafsa": "Gafsa",
+        "medenine": "Medenine",
+        "béja": "Béja",
+        "beja": "Béja",
+        "jendouba": "Jendouba",
+        "kef": "Le Kef",
+        "siliana": "Siliana",
+        "zaghouan": "Zaghouan",
+        "kasserine": "Kasserine",
+        "sidi bouzid": "Sidi Bouzid",
+        "gabes": "Gabès",
+        "gabès": "Gabès",
+        "tataouine": "Tataouine",
+        "tozeur": "Tozeur",
+        "kebili": "Kébili",
     }
     
     for key, value in fuzzy_map.items():

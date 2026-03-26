@@ -183,21 +183,23 @@ def _extract_common_fields_to_metadata(doc) -> None:
     lines = [line.strip() for line in content.split("\n") if ":" in line]
 
     known_keys = {
-        "gouvernorat": ["gouvernorat", "gouvernorat :"],
-        "delegation": ["délégation", "delegation :"],
-        "type": ["type d'établissement", "type :"],
-        "nom": ["nom de l'établissement", "nom :"],
-        "adresse": ["adresse", "adresse :"],
+        "gouvernorat": ["gouvernorat"],
+        "delegation": ["délégation", "delegation"],
+        "type": ["type d'établissement", "type"],
+        "nom": ["nom de l'établissement", "nom"],
+        "adresse": ["adresse"],
     }
 
     for line in lines:
+        col, _, val = line.partition(":")
+        col_clean = col.strip().lower()
+        val_clean = val.strip()
+        if not val_clean:
+            continue
         for key, prefixes in known_keys.items():
-            for prefix in prefixes:
-                if line.lower().startswith(prefix):
-                    value = line[len(prefix):].strip(" :").strip()
-                    if value:
-                        doc.metadata[key] = value
-                    break
+            if col_clean in prefixes:
+                doc.metadata[key] = val_clean
+                break
 
 
 if __name__ == "__main__":
