@@ -3,6 +3,7 @@ Utility functions for the Tunisia Education RAG project.
 Includes helper functions for governorate extraction and source citation formatting.
 """
 
+import logging
 from src.retriever import get_available_governorates
 
 def extract_gouvernorat(query: str) -> str | None:

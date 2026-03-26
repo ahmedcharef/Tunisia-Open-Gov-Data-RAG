@@ -2,22 +2,17 @@
 """
 Tunisia Education RAG - Streamlit Web Interface
 
-This is the main web application for the Tunisia Education RAG project.
-It provides two tabs:
-1. Chat Assistant - Natural language querying over Tunisian educational institutions
-2. Statistics Dashboard - Overview and metrics of the loaded database
-
 Features:
-- Governorate-based filtering
-- Source citations with metadata
-- Shared RAG service layer (same logic as CLI)
-- Clean multi-tab interface
+- Multi-tab interface (Chat + Statistics Dashboard)
+- Dynamic governorate filtering
+- Source citations
+- Shared RAGService layer (same logic as CLI)
+- Robust error handling
 """
 
 import streamlit as st
 from dotenv import load_dotenv
 from typing import List
-import pandas as pd
 
 from src.config import Config
 from src.rag_service import RAGService
@@ -47,11 +42,11 @@ def get_rag_service():
 
 service = get_rag_service()
 
-# Load available governorates for filter
+# Load available governorates dynamically
 available_govs = ["All"] + get_available_governorates()
 
 # ====================== TABS ======================
-tab1, tab2 = st.tabs(["💬 Chat Assistant", "📊 Statistics Dashboard"])
+tab_chat, tab_stats = st.tabs(["💬 Chat Assistant", "📊 Statistics Dashboard"])
 
 # ====================== SIDEBAR ======================
 with st.sidebar:
@@ -82,7 +77,7 @@ with st.sidebar:
     )
 
 # ====================== TAB 1: CHAT ASSISTANT ======================
-with tab1:
+with tab_chat:
     st.subheader("Chat with the Assistant")
 
     # Display chat history
@@ -91,6 +86,7 @@ with tab1:
             st.markdown(message["content"])
 
     if prompt := st.chat_input("Ask a question about educational institutions in Tunisia..."):
+        
         st.session_state.chat_history.append({"role": "user", "content": prompt})
         with st.chat_message("user"):
             st.markdown(prompt)
@@ -117,16 +113,17 @@ with tab1:
                     })
 
                 except Exception as e:
-                    st.error(f"An error occurred: {str(e)}")
+                    st.error(f"An error occurred while generating the response: {str(e)}")
 
 # ====================== TAB 2: STATISTICS DASHBOARD ======================
-with tab2:
+with tab_stats:
     st.subheader("📊 Database Statistics")
 
     try:
         stats = get_vectorstore_stats()
         total_docs = stats.get('total_documents', 0)
 
+        # Summary metrics
         col1, col2, col3 = st.columns(3)
         with col1:
             st.metric("Total Establishments", f"{total_docs:,}")
@@ -141,28 +138,29 @@ with tab2:
         st.subheader("Governorate Distribution")
         df_gov = get_governorate_breakdown()
 
-        if not df_gov.empty:
+        if not df_gov.empty and len(df_gov) > 0:
             col1, col2 = st.columns([3, 2])
             with col1:
                 st.bar_chart(df_gov.set_index("Governorate")[:15])
             with col2:
                 st.dataframe(
                     df_gov.head(15),
-                    use_container_width=True,
+                    width='stretch',
                     hide_index=True
                 )
-            
-            st.caption(f"Showing top governorates from a sample of up to 3,000 records.")
+            st.caption(f"Showing top {min(15, len(df_gov))} governorates")
         else:
-            st.info("No governorate information could be extracted from the data.")
+            st.info("No governorate breakdown data available.")
 
         st.markdown("---")
 
+        # Key Insights
         st.subheader("Key Insights")
         st.info(f"""
-        - **Total records indexed**: {total_docs:,}
-        - Data includes public universities, public schools, and private schools
-        - Governorate filtering is dynamic based on actual loaded data
+        • **Total records indexed**: {total_docs:,}  
+        • Data includes public universities, public schools, and private schools  
+        • Governorate filtering is dynamic based on actual loaded data  
+        • Source citations are shown for transparency
         """)
 
     except Exception as e:

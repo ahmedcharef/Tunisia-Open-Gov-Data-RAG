@@ -1,7 +1,6 @@
-# src/rag_service.py
 """
 Shared RAG service layer for both CLI and Streamlit interfaces.
-Centralizes chain creation and query execution.
+Centralizes LCEL chain creation and query execution with proper history handling.
 """
 
 from typing import Dict, Any, List, Tuple
@@ -11,7 +10,7 @@ from langchain_core.messages import HumanMessage, AIMessage
 from langchain_openai import ChatOpenAI
 from langchain_ollama import ChatOllama
 from langchain_core.output_parsers import StrOutputParser
-from langchain_core.runnables import RunnablePassthrough, RunnableParallel, RunnableLambda
+from langchain_core.runnables import RunnablePassthrough, RunnableParallel
 
 from src.config import Config, logger
 from src.prompts import get_contextualize_prompt, get_qa_prompt
@@ -20,7 +19,7 @@ from src.utils import extract_gouvernorat, format_source_citation
 
 
 class RAGService:
-    """Shared RAG service with correct message conversion."""
+    """Shared RAG service supporting both CLI and Streamlit."""
 
     def __init__(self):
         self.llm = self._initialize_llm()
@@ -28,6 +27,7 @@ class RAGService:
         self.qa_prompt = get_qa_prompt()
 
     def _initialize_llm(self):
+        """Initialize LLM with proper configuration."""
         try:
             if Config.LLM_PROVIDER == "openrouter":
                 return ChatOpenAI(
@@ -51,17 +51,18 @@ class RAGService:
             logger.error(f"Failed to initialize LLM: {e}")
             raise
 
-    def _convert_to_messages(self, chat_history: List) -> List:
-        """Convert list of dicts or tuples to LangChain BaseMessage objects."""
+    def _convert_history(self, chat_history: List) -> List:
+        """Convert list of dicts or tuples to LangChain message objects."""
         messages = []
         for msg in chat_history:
             if isinstance(msg, dict):
-                role = msg.get("role")
+                role = msg.get("role", "")
                 content = msg.get("content", "")
             elif isinstance(msg, (list, tuple)) and len(msg) == 2:
                 role, content = msg
             else:
                 continue
+
             if role in ("user", "human"):
                 messages.append(HumanMessage(content=content))
             elif role in ("assistant", "ai"):
@@ -70,31 +71,38 @@ class RAGService:
 
     def create_rag_chain(self, retriever):
         """Create LCEL RAG chain."""
-        # contextualize_chain receives {"input": str, "chat_history": [BaseMessage, ...]}
-        # and returns a standalone question string
-        contextualize_chain = self.contextualize_prompt | self.llm | StrOutputParser()
+        contextualize_chain = (
+            self.contextualize_prompt 
+            | self.llm 
+            | StrOutputParser()
+        )
 
-        rag_chain = RunnableParallel({
-            "context": contextualize_chain | retriever,
-            "input": itemgetter("input"),
-            "chat_history": itemgetter("chat_history"),
-        }) | RunnableParallel({
-            "answer": self.qa_prompt | self.llm | StrOutputParser(),
-            "context": itemgetter("context"),
-        })
+        rag_chain = (
+            RunnableParallel({
+                "context": contextualize_chain | retriever,
+                "input": itemgetter("input"),
+                "chat_history": itemgetter("chat_history"),
+            })
+            | RunnableParallel({
+                "answer": self.qa_prompt | self.llm | StrOutputParser(),
+                "context": itemgetter("context"),
+            })
+        )
 
         return rag_chain
 
-    def query(self, user_input: str, chat_history: List[dict], k: int = 8) -> Dict[str, Any]:
-        """Execute query with proper history conversion."""
+    def query(self, user_input: str, chat_history: List = None, k: int = 8) -> Dict[str, Any]:
+        """Execute a query and return answer + sources."""
+        if chat_history is None:
+            chat_history = []
+
         try:
             gov = extract_gouvernorat(user_input)
             retriever = get_retriever(k=k, gouvernorat=gov)
 
             chain = self.create_rag_chain(retriever)
 
-            # Convert chat_history to proper LangChain messages
-            history_messages = self._convert_to_messages(chat_history)
+            history_messages = self._convert_history(chat_history)
 
             result = chain.invoke({
                 "input": user_input,
@@ -104,7 +112,6 @@ class RAGService:
             answer = result["answer"]
             context_docs = result.get("context", [])
 
-            # Format citations
             sources = []
             for doc in context_docs[:6]:
                 citation = format_source_citation(doc)

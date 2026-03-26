@@ -1,11 +1,9 @@
+#!/usr/bin/env python3
 """
-ingest.py
+ingest.py - Ingestion pipeline for Tunisian education CSV files.
 
-Ingests Tunisian education establishment CSV files into Chroma vector store.
-Designed for the four specific files you mentioned (March 2025–2026 versions).
-
-Usage:
-    python ingest.py
+This script loads the four education CSVs, enriches metadata (especially governorate),
+chunks the documents, and stores them in Chroma with optimized settings.
 """
 
 import os
@@ -21,46 +19,41 @@ from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_chroma import Chroma
 from langchain_huggingface import HuggingFaceEmbeddings
 
-from config import Config, logger
+from src.config import Config, logger
 import warnings
 from tqdm import tqdm
 
+# Silence noisy logs
 logging.getLogger("chromadb.telemetry.product.posthog").setLevel(logging.CRITICAL)
 logging.getLogger("sentence_transformers").setLevel(logging.WARNING)
-logging.getLogger("transformers").setLevel(logging.ERROR)
 warnings.filterwarnings("ignore", message=".*position_ids.*")
+
 load_dotenv()
 
 # ────────────────────────────────────────────────
-#  Configuration overrides / constants for this dataset
+# Configuration
 # ────────────────────────────────────────────────
 
-COLLECTION_NAME = "tn_education_etablissements_2025"
-
-# Most Tunisian government CSVs from data.gov.tn use ; as delimiter
 CSV_DELIMITER = ";"
-
-# Increase chunk size a bit since school/university records are usually short
 CHUNK_SIZE = 1400
 CHUNK_OVERLAP = 180
 
 # ────────────────────────────────────────────────
 def ingest_education_csvs() -> None:
-    """
-    Load → enrich metadata → chunk → embed → store in Chroma
-    """
+    """Main ingestion pipeline."""
     data_dir = Path(Config.DATA_DIR)
     if not data_dir.exists():
         logger.error(f"Data directory not found: {data_dir}")
+        logger.info("Please place your CSV files in the 'data/' folder.")
         return
 
-    # Find all relevant CSV files (you can make this list more strict if needed)
+    # Find CSV files
     csv_patterns = [
         "Etablissements-publics-enseignement-superieur-en-Tunisie.csv",
         "Les-Universites-Etatiques-Publiques-en-Tunisie.csv",
         "liste-des-etablissements-scolaires-prives.csv",
         "liste-des-etablissements-scolaires-publics.csv",
-        "*.csv",  # fallback — in case filenames are slightly different
+        "*.csv",   # fallback
     ]
 
     all_files: List[Path] = []
@@ -70,9 +63,6 @@ def ingest_education_csvs() -> None:
 
     if not all_files:
         logger.error(f"No CSV files found in {data_dir}")
-        logger.info("Expected files:")
-        for p in csv_patterns:
-            logger.info(f"  • {p}")
         return
 
     logger.info(f"Found {len(all_files)} CSV file(s)")
@@ -80,7 +70,7 @@ def ingest_education_csvs() -> None:
     all_docs = []
 
     for file_path in all_files:
-        logger.info(f"Processing: {file_path.name}")
+        logger.info(f"Loading: {file_path.name}")
 
         try:
             loader = CSVLoader(
@@ -90,16 +80,15 @@ def ingest_education_csvs() -> None:
             )
             docs = loader.load()
 
-            # Enrich metadata with source filename and category inference
             category = _guess_category_from_filename(file_path.name)
 
             for doc in docs:
                 doc.metadata["source_file"] = file_path.name
                 doc.metadata["category"] = category
-                # Try to extract gouvernorat / délégation / type if columns exist
+                # Improved metadata extraction
                 _extract_common_fields_to_metadata(doc)
 
-            logger.info(f"  → loaded {len(docs):,} rows")
+            logger.info(f"  → Loaded {len(docs):,} rows")
             all_docs.extend(docs)
 
         except Exception as e:
@@ -107,59 +96,57 @@ def ingest_education_csvs() -> None:
             continue
 
     if not all_docs:
-        logger.error("No documents were loaded from any file.")
+        logger.error("No documents were loaded.")
         return
 
-    # ─── Split ────────────────────────────────────────
+    # ─── Split Documents ────────────────────────────────────────
     text_splitter = RecursiveCharacterTextSplitter(
         chunk_size=CHUNK_SIZE,
         chunk_overlap=CHUNK_OVERLAP,
-        length_function=len,
-        separators=["\n\n", "\n", ". ", "; ", ", ", " - ", " | ", " • ", " "],
+        separators=["\n\n", "\n", ". ", "; ", ", ", " - ", " | ", " • "],
         add_start_index=True,
     )
 
-   # ─── Embed & store ────────────────────────────────
     chunks = text_splitter.split_documents(all_docs)
-    logger.info(f"Created {len(chunks):,} text chunks")
-    
+    logger.info(f"Created {len(chunks):,} chunks")
+
+    # ─── Embed & Store ────────────────────────────────────────
     embeddings = HuggingFaceEmbeddings(
         model_name=Config.EMBEDDING_MODEL,
-        model_kwargs={"device": "cpu"},  # "cuda" if you have GPU + proper torch setup
+        model_kwargs={"device": "cpu"},
     )
 
     logger.info("Creating / updating Chroma collection...")
 
-    # 1. Create or get the collection with tuned HNSW params
-    #    (lower ef_construction = faster build, but slightly lower quality graph)
     vectorstore = Chroma(
         persist_directory=Config.CHROMA_PERSIST_DIR,
-        embedding_function=embeddings,           # required even if pre-embedded
-        collection_name=COLLECTION_NAME,
+        embedding_function=embeddings,
+        collection_name=Config.COLLECTION_NAME,          # Use Config now
         collection_metadata={
             "hnsw:space": "cosine",
-            "hnsw:construction_ef": 40,          # default is ~100–200 → 40 is aggressive speedup
-            "hnsw:M": 16,                        # default is usually fine (8–64 range common)
-            # Optional: "hnsw:num_threads": 4    # if your machine has multiple cores
+            "hnsw:construction_ef": 40,      # Faster indexing
+            "hnsw:M": 16,
         },
     )
 
-    # 2. Add documents in batches with progress bar
-    batch_size = 400  # 200–800 is often sweet spot (depends on RAM; lower = safer)
+    # Batch indexing with progress bar
+    batch_size = 400
     total_chunks = len(chunks)
 
-    with tqdm(total=total_chunks, desc="Indexing batches", unit="chunk") as pbar:
+    with tqdm(total=total_chunks, desc="Indexing", unit="chunk") as pbar:
         for i in range(0, total_chunks, batch_size):
-            batch = chunks[i : i + batch_size]
+            batch = chunks[i:i + batch_size]
             vectorstore.add_documents(batch)
             pbar.update(len(batch))
 
     logger.info(
-        f"Ingestion completed\n"
-        f"  Collection:     {COLLECTION_NAME}\n"
-        f"  Chunks indexed: {total_chunks:,}\n"
-        f"  Storage:        {Config.CHROMA_PERSIST_DIR}"
+        f"✅ Ingestion completed successfully!\n"
+        f"   Collection : {Config.COLLECTION_NAME}\n"
+        f"   Documents  : {len(all_docs):,}\n"
+        f"   Chunks     : {total_chunks:,}\n"
+        f"   Storage    : {Config.CHROMA_PERSIST_DIR}"
     )
+
 
 def _guess_category_from_filename(filename: str) -> str:
     name = filename.lower()
@@ -175,19 +162,16 @@ def _guess_category_from_filename(filename: str) -> str:
 
 
 def _extract_common_fields_to_metadata(doc) -> None:
-    """
-    Try to move important fields from page_content → metadata
-    (makes filtering later much easier)
-    """
+    """Improved metadata extraction for real Tunisian CSVs."""
     content = doc.page_content
     lines = [line.strip() for line in content.split("\n") if ":" in line]
 
     known_keys = {
-        "gouvernorat": ["gouvernorat"],
+        "gouvernorat": ["gouvernorat", "governorate", "wilaya", "région"],
         "delegation": ["délégation", "delegation"],
-        "type": ["type d'établissement", "type"],
-        "nom": ["nom de l'établissement", "nom"],
-        "adresse": ["adresse"],
+        "type": ["type d'établissement", "type", "category"],
+        "nom": ["nom de l'établissement", "nom", "name"],
+        "adresse": ["adresse", "address"],
     }
 
     for line in lines:
@@ -196,8 +180,9 @@ def _extract_common_fields_to_metadata(doc) -> None:
         val_clean = val.strip()
         if not val_clean:
             continue
+
         for key, prefixes in known_keys.items():
-            if col_clean in prefixes:
+            if any(p in col_clean for p in prefixes):
                 doc.metadata[key] = val_clean
                 break
 
