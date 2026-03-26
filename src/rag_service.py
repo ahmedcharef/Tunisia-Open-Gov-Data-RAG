@@ -1,5 +1,5 @@
 """
-Shared RAG service with multi-dataset support.
+Shared RAG service with multi-dataset and governorate filtering.
 """
 
 from typing import Dict, Any, List, Tuple
@@ -18,8 +18,6 @@ from src.utils import extract_gouvernorat, format_source_citation
 
 
 class RAGService:
-    """Shared RAG service with multi-dataset support."""
-
     def __init__(self, dataset: str = None):
         self.dataset = dataset or Config.DEFAULT_DATASET
         self.llm = self._initialize_llm()
@@ -51,7 +49,6 @@ class RAGService:
             raise
 
     def _convert_history(self, chat_history: List) -> List:
-        """Convert chat history to LangChain messages."""
         messages = []
         for msg in chat_history:
             if isinstance(msg, dict):
@@ -61,7 +58,6 @@ class RAGService:
                 role, content = msg
             else:
                 continue
-
             if role in ("user", "human"):
                 messages.append(HumanMessage(content=content))
             elif role in ("assistant", "ai"):
@@ -69,12 +65,7 @@ class RAGService:
         return messages
 
     def create_rag_chain(self, retriever):
-        """Create LCEL RAG chain."""
-        contextualize_chain = (
-            self.contextualize_prompt 
-            | self.llm 
-            | StrOutputParser()
-        )
+        contextualize_chain = self.contextualize_prompt | self.llm | StrOutputParser()
 
         rag_chain = (
             RunnableParallel({
@@ -89,14 +80,17 @@ class RAGService:
         )
         return rag_chain
 
-    def query(self, user_input: str, chat_history: List = None, k: int = 8, dataset: str = None) -> Dict[str, Any]:
-        """Execute query with optional dataset selection."""
+    def query(self, user_input: str, chat_history: List = None, k: int = 8, gouvernorat: str = None, dataset: str = None) -> Dict[str, Any]:
         if chat_history is None:
             chat_history = []
 
         try:
-            gov = extract_gouvernorat(user_input)
-            retriever = get_retriever(k=k, gouvernorat=None, dataset=dataset or self.dataset)
+            # Use passed gouvernorat or extract from query
+            gov = gouvernorat or extract_gouvernorat(user_input)
+            
+            logger.info(f"Query: '{user_input}' | Governorate filter: {gov} | Dataset: {dataset or self.dataset}")
+
+            retriever = get_retriever(k=k, gouvernorat=gov, dataset=dataset or self.dataset)
 
             chain = self.create_rag_chain(retriever)
             history_messages = self._convert_history(chat_history)
@@ -108,6 +102,8 @@ class RAGService:
 
             answer = result["answer"]
             context_docs = result.get("context", [])
+
+            logger.info(f"Retrieved {len(context_docs)} documents for this query")
 
             sources = [format_source_citation(doc) for doc in context_docs[:6] if format_source_citation(doc)]
 

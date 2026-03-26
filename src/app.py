@@ -74,7 +74,8 @@ with st.sidebar:
     selected_gov = st.selectbox(
         "Governorate",
         options=available_govs,
-        index=0
+        index=0,
+        key="gov_selector"
     )
 
     if st.button("🔄 Reset Conversation"):
@@ -84,26 +85,30 @@ with st.sidebar:
     st.markdown("---")
     st.caption(f"Model: **{Config.OPENROUTER_MODEL if Config.LLM_PROVIDER == 'openrouter' else Config.OLLAMA_MODEL}**")
 
-# ====================== TAB 1: CHAT ======================
+# ====================== TAB 1: CHAT ASSISTANT ======================
 with tab_chat:
-    st.subheader(f"Chat - {selected_dataset.title()} Dataset")
+    st.subheader(f"Chat - {st.session_state.current_dataset.title()} Dataset")
 
     for message in st.session_state.chat_history:
         with st.chat_message(message["role"]):
             st.markdown(message["content"])
 
-    if prompt := st.chat_input("Ask a question..."):
+    if prompt := st.chat_input("Ask a question about educational institutions in Tunisia..."):
         st.session_state.chat_history.append({"role": "user", "content": prompt})
         with st.chat_message("user"):
             st.markdown(prompt)
 
         with st.chat_message("assistant"):
-            with st.spinner("Searching..."):
+            with st.spinner("Searching the database..."):
                 try:
+                    # Pass selected governorate to the service
+                    gov_filter = None if selected_gov == "All" else selected_gov
+
                     result = service.query(
                         user_input=prompt,
                         chat_history=st.session_state.chat_history[:-1],
-                        k=k_value
+                        k=k_value,
+                        gouvernorat=gov_filter
                     )
 
                     st.markdown(result["answer"])
@@ -121,27 +126,26 @@ with tab_chat:
                 except Exception as e:
                     st.error(f"An error occurred: {str(e)}")
 
-# ====================== TAB 2: STATISTICS ======================
+# ====================== TAB 2: STATISTICS DASHBOARD ======================
 with tab_stats:
-    st.subheader(f"📊 Statistics - {selected_dataset.title()} Dataset")
+    st.subheader(f"📊 Statistics - {st.session_state.current_dataset.title()} Dataset")
 
     try:
-        stats = get_vectorstore_stats(selected_dataset)
+        stats = get_vectorstore_stats(st.session_state.current_dataset)
         total_docs = stats.get('total_documents', 0)
 
         col1, col2, col3 = st.columns(3)
         with col1:
-            st.metric("Total Records", f"{total_docs:,}")
+            st.metric("Total Establishments", f"{total_docs:,}")
         with col2:
-            st.metric("Collection", Config.get_collection_name(selected_dataset))
+            st.metric("Collection", Config.get_collection_name(st.session_state.current_dataset))
         with col3:
             st.metric("Status", "✅ Ready")
 
         st.markdown("---")
 
-        # Governorate Breakdown
         st.subheader("Governorate Distribution")
-        df_gov = get_governorate_breakdown()
+        df_gov = get_governorate_breakdown(st.session_state.current_dataset)
 
         if not df_gov.empty and len(df_gov) > 0:
             col1, col2 = st.columns([3, 2])
@@ -159,7 +163,6 @@ with tab_stats:
 
         st.markdown("---")
 
-        # Key Insights
         st.subheader("Key Insights")
         st.info(f"""
         • **Total records indexed**: {total_docs:,}  
