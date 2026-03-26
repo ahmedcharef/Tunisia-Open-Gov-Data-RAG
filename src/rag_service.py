@@ -1,6 +1,5 @@
 """
-Shared RAG service layer for both CLI and Streamlit interfaces.
-Centralizes LCEL chain creation and query execution with proper history handling.
+Shared RAG service with multi-dataset support.
 """
 
 from typing import Dict, Any, List, Tuple
@@ -19,15 +18,15 @@ from src.utils import extract_gouvernorat, format_source_citation
 
 
 class RAGService:
-    """Shared RAG service supporting both CLI and Streamlit."""
+    """Shared RAG service with multi-dataset support."""
 
-    def __init__(self):
+    def __init__(self, dataset: str = None):
+        self.dataset = dataset or Config.DEFAULT_DATASET
         self.llm = self._initialize_llm()
         self.contextualize_prompt = get_contextualize_prompt()
         self.qa_prompt = get_qa_prompt()
 
     def _initialize_llm(self):
-        """Initialize LLM with proper configuration."""
         try:
             if Config.LLM_PROVIDER == "openrouter":
                 return ChatOpenAI(
@@ -38,7 +37,7 @@ class RAGService:
                     max_tokens=Config.MAX_TOKENS,
                     default_headers={
                         "HTTP-Referer": "https://github.com/ahmedcharef/Tunisia-Open-Gov-Data-RAG",
-                        "X-Title": "Tunisia Education RAG",
+                        "X-Title": "Tunisia Multi-Dataset RAG",
                     },
                 )
             else:
@@ -52,7 +51,7 @@ class RAGService:
             raise
 
     def _convert_history(self, chat_history: List) -> List:
-        """Convert list of dicts or tuples to LangChain message objects."""
+        """Convert chat history to LangChain messages."""
         messages = []
         for msg in chat_history:
             if isinstance(msg, dict):
@@ -88,20 +87,18 @@ class RAGService:
                 "context": itemgetter("context"),
             })
         )
-
         return rag_chain
 
-    def query(self, user_input: str, chat_history: List = None, k: int = 8) -> Dict[str, Any]:
-        """Execute a query and return answer + sources."""
+    def query(self, user_input: str, chat_history: List = None, k: int = 8, dataset: str = None) -> Dict[str, Any]:
+        """Execute query with optional dataset selection."""
         if chat_history is None:
             chat_history = []
 
         try:
             gov = extract_gouvernorat(user_input)
-            retriever = get_retriever(k=k, gouvernorat=gov)
+            retriever = get_retriever(k=k, gouvernorat=None, dataset=dataset or self.dataset)
 
             chain = self.create_rag_chain(retriever)
-
             history_messages = self._convert_history(chat_history)
 
             result = chain.invoke({
@@ -112,11 +109,7 @@ class RAGService:
             answer = result["answer"]
             context_docs = result.get("context", [])
 
-            sources = []
-            for doc in context_docs[:6]:
-                citation = format_source_citation(doc)
-                if citation:
-                    sources.append(citation)
+            sources = [format_source_citation(doc) for doc in context_docs[:6] if format_source_citation(doc)]
 
             return {
                 "answer": answer,
@@ -125,7 +118,7 @@ class RAGService:
             }
 
         except Exception as e:
-            logger.error(f"Query execution failed: {e}")
+            logger.error(f"Query failed for dataset {dataset or self.dataset}: {e}")
             return {
                 "answer": "An error occurred while processing your question. Please try again.",
                 "sources": [],
