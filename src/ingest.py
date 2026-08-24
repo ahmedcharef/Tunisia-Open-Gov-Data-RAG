@@ -121,7 +121,7 @@ def ingest_education_csvs() -> None:
     vectorstore = Chroma(
         persist_directory=Config.CHROMA_PERSIST_DIR,
         embedding_function=embeddings,
-        collection_name=Config.COLLECTION_NAME,          # Use Config now
+        collection_name=Config.get_collection_name(),
         collection_metadata={
             "hnsw:space": "cosine",
             "hnsw:construction_ef": 40,      # Faster indexing
@@ -141,7 +141,7 @@ def ingest_education_csvs() -> None:
 
     logger.info(
         f"✅ Ingestion completed successfully!\n"
-        f"   Collection : {Config.COLLECTION_NAME}\n"
+        f"   Collection : {Config.get_collection_name()}\n"
         f"   Documents  : {len(all_docs):,}\n"
         f"   Chunks     : {total_chunks:,}\n"
         f"   Storage    : {Config.CHROMA_PERSIST_DIR}"
