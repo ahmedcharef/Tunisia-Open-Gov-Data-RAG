@@ -1,11 +1,15 @@
 #!/usr/bin/env python3
 """
-run.py - Easy entry point for Tunisia Education RAG
+run.py - Unified launcher for Tunisia Open Government Data RAG
 
 Usage:
-    python run.py              → Run CLI version (default)
-    python run.py ui           → Run Streamlit web UI
-    python run.py --debug      → Enable debug logging
+    python run.py                            → Interactive CLI (default)
+    python run.py cli                        → Interactive CLI
+    python run.py cli --query "..."          → Single query, non-interactive
+    python run.py ui                         → Streamlit web UI
+    python run.py ingest                     → Ingest all files for the default dataset
+    python run.py ingest --dataset transport → Ingest a specific dataset
+    python run.py --debug                    → Enable debug logging (any mode)
 """
 
 import sys
@@ -20,14 +24,20 @@ def main():
     parser.add_argument(
         "mode",
         nargs="?",
-        choices=["cli", "ui"],
+        choices=["cli", "ui", "ingest"],
         default="cli",
-        help="Mode to run: 'cli' (default) or 'ui'"
+        help="Mode to run: 'cli' (default), 'ui', or 'ingest'"
     )
     parser.add_argument(
         "--debug",
         action="store_true",
         help="Enable debug logging"
+    )
+    parser.add_argument(
+        "--dataset",
+        type=str,
+        default=None,
+        help="Dataset to ingest into (used with 'ingest' mode). See Config.DATASETS for options."
     )
 
     args = parser.parse_args()
@@ -40,7 +50,16 @@ def main():
         )
         print("🛠️  Debug mode enabled\n")
 
-    if args.mode == "cli":
+    if args.mode == "ingest":
+        print("📥 Starting ingestion pipeline...\n")
+        try:
+            from src.ingest import ingest_education_csvs
+            ingest_education_csvs(dataset=args.dataset)
+        except Exception as e:
+            print(f"❌ Ingestion failed: {e}")
+            sys.exit(1)
+
+    elif args.mode == "cli":
         print("🚀 Starting Tunisia Education RAG (CLI Mode)\n")
         try:
             from src.query import main as run_cli

@@ -29,11 +29,74 @@ class Config:
     DEFAULT_DATASET: str = "education"
     
     DATASETS: Dict[str, str] = {
-        "education": "tn_education_etablissements_2025",
-        "agriculture": "tn_agriculture_ressources_hydrauliques_peche_maritime",
-        # Add more later:
-        # "budgets": "tn_public_budgets_2025",
-        # "hospitals": "tn_health_facilities",
+        # Education: public/private schools, universities, vocational training
+        "education": "tn_education",
+        # Agriculture
+        "agriculture": "tn_agriculture",
+        # Transport: TRANSTU bus stops + geographic positions, Tunisair routes
+        "transport": "tn_transport",
+        # Social programs: children allocation programs
+        "social": "tn_social",
+        # Education statistics: BAC, lycées pilotes admissions
+        "stats": "tn_stats",
+    }
+
+    # Controls what the Statistics Dashboard shows for each dataset.
+    # breakdown_col: canonical metadata field to group by (must match _COLUMN_ALIASES keys)
+    # breakdown_label: human-readable axis label
+    # primary_metric: label for the total-count metric card
+    # If breakdown_col is None, the governorate chart is hidden for that dataset.
+    DATASET_UI: Dict[str, Dict] = {
+        "education": {
+            "primary_metric": "Indexed Chunks",
+            "breakdown_col": "gouvernorat",
+            "breakdown_label": "Governorate",
+        },
+        "agriculture": {
+            "primary_metric": "Indexed Chunks",
+            "breakdown_col": "gouvernorat",
+            "breakdown_label": "Governorate",
+        },
+        "transport": {
+            "primary_metric": "Indexed Chunks",
+            "breakdown_col": "gouvernorat",
+            "breakdown_label": "Governorate",
+        },
+        "social": {
+            "primary_metric": "Indexed Chunks",
+            "breakdown_col": "gouvernorat",
+            "breakdown_label": "Governorate",
+        },
+        "stats": {
+            "primary_metric": "Indexed Chunks",
+            "breakdown_col": "gouvernorat",
+            "breakdown_label": "Region (CRE)",
+        },
+    }
+    # Use None to ingest ALL files in data/ (legacy / catch-all behaviour).
+    DATASET_FILES: Dict[str, list] = {
+        "education": [
+            "Etablissements-publics-enseignement-superieur-en-Tunisie.csv",
+            "Les-Universites-Etatiques-Publiques-en-Tunisie.csv",
+            "liste-des-etablissements-scolaires-prives.csv",
+            "liste des établissements scolaires privés.csv",
+            "liste-des-etablissements-scolaires-publics.csv",
+            "etablissements_de_la_formation_professionnelle_agricole.xlsx",
+        ],
+        "agriculture": None,  # no files yet — add filenames when available
+        "transport": [
+            "Référentiel d'arrêt de la TRANSTU.csv",
+            "Positions géographiques des stations du réseau bus de la TRANSTU.xlsx",
+            "reseau Tunisair.csv",
+        ],
+        "social": [
+            "Programme des allocations enfants 0-5 ans-2024.csv",
+            "Programme des allocations enfants 6-18 ans- 2023csv",
+        ],
+        "stats": [
+            "presentes-bac-2024.csv",
+            "Effectif des élèves admis au concours d'entrée aux lycées pilotes.csv",
+        ],
     }
 
     # ====================== EMBEDDINGS ======================

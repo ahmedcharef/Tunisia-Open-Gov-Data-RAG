@@ -14,14 +14,22 @@ from src.config import Config
 
 logger = logging.getLogger("tunisia-rag")
 
+# Module-level embedding cache — initialized once, reused across all calls
+_embeddings_instance: HuggingFaceEmbeddings = None
+
+def _get_embeddings() -> HuggingFaceEmbeddings:
+    global _embeddings_instance
+    if _embeddings_instance is None:
+        _embeddings_instance = HuggingFaceEmbeddings(model_name=Config.EMBEDDING_MODEL)
+    return _embeddings_instance
+
 
 def get_vectorstore(dataset: str = None):
     collection_name = Config.get_collection_name(dataset)
     try:
-        embeddings = HuggingFaceEmbeddings(model_name=Config.EMBEDDING_MODEL)
         vs = Chroma(
             persist_directory=Config.CHROMA_PERSIST_DIR,
-            embedding_function=embeddings,
+            embedding_function=_get_embeddings(),
             collection_name=collection_name,
         )
         return vs
@@ -72,7 +80,7 @@ def get_available_governorates(dataset: str = None) -> List[str]:
                 if key in meta and meta[key]:
                     gov = str(meta[key]).strip()
                     if gov and len(gov) > 2:
-                        governorates.add(gov.title())
+                        governorates.add(gov)  # stored as uppercase by ingest
                     break
 
         # Strategy 2: Parse from page_content (very important for your CSVs)
@@ -104,14 +112,19 @@ def get_vectorstore_stats(dataset: str = None) -> Dict:
         return {"total_documents": 0, "status": "unavailable"}
 
     try:
+        chunk_count = vectorstore._collection.count()
+        # source_row_count is stored in collection metadata during ingestion
+        col_meta = vectorstore._collection.metadata or {}
+        row_count = col_meta.get("source_row_count", None)
         return {
-            "total_documents": vectorstore._collection.count(),
+            "total_documents": chunk_count,
+            "source_row_count": row_count,
             "collection_name": Config.get_collection_name(dataset),
             "status": "ready"
         }
     except Exception as e:
         logger.error(f"Failed to get stats: {e}")
-        return {"total_documents": 0, "status": "error", "error": str(e)}
+        return {"total_documents": 0, "source_row_count": None, "status": "error", "error": str(e)}
 
 
 def get_governorate_breakdown(dataset: str = None) -> pd.DataFrame:
@@ -139,7 +152,7 @@ def get_governorate_breakdown(dataset: str = None) -> pd.DataFrame:
             if meta:
                 for key in possible_keys:
                     if key in meta and meta[key]:
-                        gov = str(meta[key]).strip().title()
+                        gov = str(meta[key]).strip()  # stored as uppercase by ingest
                         break
 
             # Fallback: parse from page_content

@@ -57,47 +57,59 @@ def extract_gouvernorat(query: str) -> str | None:
 
 def format_source_citation(doc) -> str:
     """
-    Format a clean and attractive source citation with emojis.
-    Returns a nicely formatted string or empty string if no useful metadata.
+    Format a clean source citation. Returns a string or empty string if no useful metadata.
     """
     try:
         if not doc or not hasattr(doc, 'metadata'):
             return ""
 
-        metadata = doc.metadata
+        m = doc.metadata
         parts = []
 
-        # Main establishment name (bold)
-        if metadata.get("nom"):
-            parts.append(f"🏛️ **{metadata['nom']}**")
-        elif metadata.get("name"):
-            parts.append(f"🏛️ **{metadata['name']}**")
+        # Name
+        if m.get("nom"):
+            parts.append(f"🏛️ **{m['nom']}**")
 
         # Governorate
-        if metadata.get("gouvernorat"):
-            parts.append(f"📍 {metadata['gouvernorat']}")
-        elif metadata.get("governorate"):
-            parts.append(f"📍 {metadata['governorate']}")
+        if m.get("gouvernorat"):
+            parts.append(f"📍 {m['gouvernorat'].title()}")
 
-        # Type of establishment
-        if metadata.get("type"):
-            parts.append(f"📚 {metadata['type']}")
-        elif metadata.get("category"):
-            parts.append(f"📚 {metadata['category']}")
+        # Delegation
+        if m.get("delegation"):
+            parts.append(f"🏘️ {m['delegation']}")
 
-        # Source file (for traceability)
-        if metadata.get("source_file"):
-            parts.append(f"📄 {metadata['source_file']}")
+        # Type / section
+        if m.get("type"):
+            parts.append(f"📚 {m['type']}")
+        elif m.get("category"):
+            parts.append(f"📚 {m['category']}")
+
+        # Transport extras
+        if m.get("agence"):
+            parts.append(f"🚌 {m['agence']}")
+        if m.get("zone_geo"):
+            parts.append(f"🌍 {m['zone_geo']}")
+        if m.get("pays"):
+            parts.append(f"🇹🇳 {m['pays']}")
+
+        # Social program stats
+        if m.get("nb_familles"):
+            parts.append(f"👨‍👩‍👧 {m['nb_familles']} familles")
+        if m.get("nb_enfants"):
+            parts.append(f"👶 {m['nb_enfants']} enfants")
+
+        # Source file
+        if m.get("source_file"):
+            parts.append(f"📄 {m['source_file']}")
 
         if parts:
             return " | ".join(parts)
         else:
-            return "📄 Source: Official Tunisian Education Data"
+            return "📄 Source: Official Tunisian Government Data"
 
     except Exception as e:
-        # Graceful fallback - never break the UI/CLI due to citation formatting
         logging.warning(f"Failed to format citation: {e}")
-        return "📄 Source: Tunisian Government Education Data"
+        return "📄 Source: Tunisian Government Data"
 
 
 def safe_get_metadata(doc, key: str, default: str = "") -> str:

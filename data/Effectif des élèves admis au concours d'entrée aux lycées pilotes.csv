@@ -1,0 +1,235 @@
+﻿_id,CRE,type candidature,genre,annee_naissance,Effectif_Admis
+1,Tunis 1,Public,Masculin,2008 et avant,1
+2,Tunis 1,Public,Masculin,2009,279
+3,Tunis 1,Public,Masculin,2010 et après,22
+4,Tunis 1,Public,Feminin,2008 et avant,3
+5,Tunis 1,Public,Feminin,2009,449
+6,Tunis 1,Public,Feminin,2010 et après,40
+7,Tunis 1,Privé,Masculin,2009,137
+8,Tunis 1,Privé,Masculin,2010 et après,14
+9,Tunis 1,Privé,Feminin,2008 et avant,1
+10,Tunis 1,Privé,Feminin,2009,164
+11,Tunis 1,Privé,Feminin,2010 et après,17
+12,Tunis 1,Libre,Feminin,2009,1
+13,Tunis 2,Public,Masculin,2009,225
+14,Tunis 2,Public,Masculin,2010 et après,30
+15,Tunis 2,Public,Feminin,2008 et avant,1
+16,Tunis 2,Public,Feminin,2009,354
+17,Tunis 2,Public,Feminin,2010 et après,37
+18,Tunis 2,Privé,Masculin,2008 et avant,1
+19,Tunis 2,Privé,Masculin,2009,82
+20,Tunis 2,Privé,Masculin,2010 et après,5
+21,Tunis 2,Privé,Feminin,2008 et avant,1
+22,Tunis 2,Privé,Feminin,2009,113
+23,Tunis 2,Privé,Feminin,2010 et après,16
+24,Ariana,Public,Masculin,2008 et avant,4
+25,Ariana,Public,Masculin,2009,254
+26,Ariana,Public,Masculin,2010 et après,23
+27,Ariana,Public,Feminin,2009,395
+28,Ariana,Public,Feminin,2010 et après,33
+29,Ariana,Privé,Masculin,2009,94
+30,Ariana,Privé,Masculin,2010 et après,10
+31,Ariana,Privé,Feminin,2008 et avant,1
+32,Ariana,Privé,Feminin,2009,121
+33,Ariana,Privé,Feminin,2010 et après,18
+34,Mannouba,Public,Masculin,2008 et avant,1
+35,Mannouba,Public,Masculin,2009,171
+36,Mannouba,Public,Masculin,2010 et après,6
+37,Mannouba,Public,Feminin,2008 et avant,1
+38,Mannouba,Public,Feminin,2009,331
+39,Mannouba,Public,Feminin,2010 et après,31
+40,Mannouba,Privé,Masculin,2009,45
+41,Mannouba,Privé,Masculin,2010 et après,6
+42,Mannouba,Privé,Feminin,2009,67
+43,Mannouba,Privé,Feminin,2010 et après,9
+44,Ben Arous,Public,Masculin,2008 et avant,1
+45,Ben Arous,Public,Masculin,2009,369
+46,Ben Arous,Public,Masculin,2010 et après,39
+47,Ben Arous,Public,Feminin,2008 et avant,1
+48,Ben Arous,Public,Feminin,2009,561
+49,Ben Arous,Public,Feminin,2010 et après,74
+50,Ben Arous,Privé,Masculin,2009,100
+51,Ben Arous,Privé,Masculin,2010 et après,21
+52,Ben Arous,Privé,Feminin,2009,118
+53,Ben Arous,Privé,Feminin,2010 et après,19
+54,Ben Arous,Libre,Feminin,2009,1
+55,Zaghouan,Public,Masculin,2009,47
+56,Zaghouan,Public,Masculin,2010 et après,2
+57,Zaghouan,Public,Feminin,2009,123
+58,Zaghouan,Public,Feminin,2010 et après,10
+59,Zaghouan,Privé,Masculin,2009,8
+60,Zaghouan,Privé,Masculin,2010 et après,1
+61,Zaghouan,Privé,Feminin,2009,20
+62,Zaghouan,Privé,Feminin,2010 et après,3
+63,Bizerte,Public,Masculin,2008 et avant,1
+64,Bizerte,Public,Masculin,2009,172
+65,Bizerte,Public,Masculin,2010 et après,15
+66,Bizerte,Public,Feminin,2009,379
+67,Bizerte,Public,Feminin,2010 et après,28
+68,Bizerte,Privé,Masculin,2008 et avant,1
+69,Bizerte,Privé,Masculin,2009,67
+70,Bizerte,Privé,Masculin,2010 et après,12
+71,Bizerte,Privé,Feminin,2008 et avant,1
+72,Bizerte,Privé,Feminin,2009,92
+73,Bizerte,Privé,Feminin,2010 et après,19
+74,Béja,Public,Masculin,2009,126
+75,Béja,Public,Masculin,2010 et après,15
+76,Béja,Public,Feminin,2009,218
+77,Béja,Public,Feminin,2010 et après,32
+78,Béja,Privé,Feminin,2009,2
+79,Jendouba,Public,Masculin,2009,127
+80,Jendouba,Public,Masculin,2010 et après,13
+81,Jendouba,Public,Feminin,2008 et avant,1
+82,Jendouba,Public,Feminin,2009,277
+83,Jendouba,Public,Feminin,2010 et après,32
+84,Siliana,Public,Masculin,2009,114
+85,Siliana,Public,Masculin,2010 et après,8
+86,Siliana,Public,Feminin,2008 et avant,1
+87,Siliana,Public,Feminin,2009,169
+88,Siliana,Public,Feminin,2010 et après,17
+89,Le Kef,Public,Masculin,2009,92
+90,Le Kef,Public,Masculin,2010 et après,3
+91,Le Kef,Public,Feminin,2009,189
+92,Le Kef,Public,Feminin,2010 et après,16
+93,Kasserine,Public,Masculin,2009,109
+94,Kasserine,Public,Masculin,2010 et après,11
+95,Kasserine,Public,Feminin,2009,204
+96,Kasserine,Public,Feminin,2010 et après,32
+97,Kasserine,Privé,Masculin,2009,31
+98,Kasserine,Privé,Masculin,2010 et après,6
+99,Kasserine,Privé,Feminin,2009,53
+100,Kasserine,Privé,Feminin,2010 et après,6
+101,Kasserine,Libre,Feminin,2010 et après,1
+102,Sidi Bouzid,Public,Masculin,2009,146
+103,Sidi Bouzid,Public,Masculin,2010 et après,8
+104,Sidi Bouzid,Public,Feminin,2009,225
+105,Sidi Bouzid,Public,Feminin,2010 et après,24
+106,Sidi Bouzid,Privé,Masculin,2009,36
+107,Sidi Bouzid,Privé,Masculin,2010 et après,8
+108,Sidi Bouzid,Privé,Feminin,2009,71
+109,Sidi Bouzid,Privé,Feminin,2010 et après,6
+110,Gafsa,Public,Masculin,2008 et avant,1
+111,Gafsa,Public,Masculin,2009,141
+112,Gafsa,Public,Masculin,2010 et après,26
+113,Gafsa,Public,Feminin,2009,264
+114,Gafsa,Public,Feminin,2010 et après,27
+115,Gafsa,Privé,Masculin,2008 et avant,1
+116,Gafsa,Privé,Masculin,2009,52
+117,Gafsa,Privé,Masculin,2010 et après,8
+118,Gafsa,Privé,Feminin,2009,82
+119,Gafsa,Privé,Feminin,2010 et après,8
+120,Tozeur,Public,Masculin,2009,34
+121,Tozeur,Public,Masculin,2010 et après,6
+122,Tozeur,Public,Feminin,2009,75
+123,Tozeur,Public,Feminin,2010 et après,13
+124,Tozeur,Privé,Masculin,2008 et avant,1
+125,Tozeur,Privé,Masculin,2009,27
+126,Tozeur,Privé,Masculin,2010 et après,1
+127,Tozeur,Privé,Feminin,2009,23
+128,Tozeur,Privé,Feminin,2010 et après,5
+129,Kébili,Public,Masculin,2009,46
+130,Kébili,Public,Masculin,2010 et après,5
+131,Kébili,Public,Feminin,2009,149
+132,Kébili,Public,Feminin,2010 et après,12
+133,Kébili,Privé,Masculin,2009,4
+134,Kébili,Privé,Masculin,2010 et après,2
+135,Kébili,Privé,Feminin,2009,17
+136,Kébili,Privé,Feminin,2010 et après,1
+137,Tataouine,Public,Masculin,2009,41
+138,Tataouine,Public,Masculin,2010 et après,6
+139,Tataouine,Public,Feminin,2009,70
+140,Tataouine,Public,Feminin,2010 et après,10
+141,Médenine,Public,Masculin,2008 et avant,3
+142,Médenine,Public,Masculin,2009,239
+143,Médenine,Public,Masculin,2010 et après,26
+144,Médenine,Public,Feminin,2009,375
+145,Médenine,Public,Feminin,2010 et après,30
+146,Médenine,Privé,Masculin,2008 et avant,1
+147,Médenine,Privé,Masculin,2009,27
+148,Médenine,Privé,Masculin,2010 et après,1
+149,Médenine,Privé,Feminin,2009,27
+150,Médenine,Privé,Feminin,2010 et après,1
+151,Gabès,Public,Masculin,2008 et avant,2
+152,Gabès,Public,Masculin,2009,164
+153,Gabès,Public,Masculin,2010 et après,21
+154,Gabès,Public,Feminin,2008 et avant,1
+155,Gabès,Public,Feminin,2009,330
+156,Gabès,Public,Feminin,2010 et après,31
+157,Gabès,Privé,Masculin,2009,20
+158,Gabès,Privé,Masculin,2010 et après,2
+159,Gabès,Privé,Feminin,2009,34
+160,Gabès,Privé,Feminin,2010 et après,3
+161,Sfax 1,Public,Masculin,2008 et avant,1
+162,Sfax 1,Public,Masculin,2009,310
+163,Sfax 1,Public,Masculin,2010 et après,31
+164,Sfax 1,Public,Feminin,2008 et avant,1
+165,Sfax 1,Public,Feminin,2009,493
+166,Sfax 1,Public,Feminin,2010 et après,54
+167,Sfax 1,Privé,Masculin,2009,13
+168,Sfax 1,Privé,Masculin,2010 et après,4
+169,Sfax 1,Privé,Feminin,2009,15
+170,Sfax 1,Privé,Feminin,2010 et après,1
+171,Sfax 2,Public,Masculin,2009,166
+172,Sfax 2,Public,Masculin,2010 et après,17
+173,Sfax 2,Public,Feminin,2009,315
+174,Sfax 2,Public,Feminin,2010 et après,46
+175,Sfax 2,Privé,Masculin,2009,3
+176,Sfax 2,Privé,Masculin,2010 et après,1
+177,Sfax 2,Privé,Feminin,2009,4
+178,Sfax 2,Privé,Feminin,2010 et après,4
+179,Sfax 2,Libre,Feminin,2009,2
+180,Mahdia,Public,Masculin,2009,140
+181,Mahdia,Public,Masculin,2010 et après,14
+182,Mahdia,Public,Feminin,2008 et avant,1
+183,Mahdia,Public,Feminin,2009,253
+184,Mahdia,Public,Feminin,2010 et après,29
+185,Mahdia,Privé,Masculin,2008 et avant,1
+186,Mahdia,Privé,Masculin,2009,11
+187,Mahdia,Privé,Masculin,2010 et après,1
+188,Mahdia,Privé,Feminin,2009,4
+189,Mahdia,Privé,Feminin,2010 et après,3
+190,Kairouan,Public,Masculin,2009,134
+191,Kairouan,Public,Masculin,2010 et après,9
+192,Kairouan,Public,Feminin,2009,214
+193,Kairouan,Public,Feminin,2010 et après,23
+194,Kairouan,Privé,Masculin,2008 et avant,4
+195,Kairouan,Privé,Masculin,2009,114
+196,Kairouan,Privé,Masculin,2010 et après,18
+197,Kairouan,Privé,Feminin,2008 et avant,1
+198,Kairouan,Privé,Feminin,2009,141
+199,Kairouan,Privé,Feminin,2010 et après,20
+200,Kairouan,Libre,Feminin,2009,1
+201,Monastir,Public,Masculin,2009,254
+202,Monastir,Public,Masculin,2010 et après,19
+203,Monastir,Public,Feminin,2008 et avant,1
+204,Monastir,Public,Feminin,2009,486
+205,Monastir,Public,Feminin,2010 et après,48
+206,Monastir,Privé,Masculin,2009,99
+207,Monastir,Privé,Masculin,2010 et après,15
+208,Monastir,Privé,Feminin,2009,123
+209,Monastir,Privé,Feminin,2010 et après,16
+210,Monastir,Libre,Feminin,2009,1
+211,Sousse,Public,Masculin,2009,273
+212,Sousse,Public,Masculin,2010 et après,20
+213,Sousse,Public,Feminin,2008 et avant,2
+214,Sousse,Public,Feminin,2009,465
+215,Sousse,Public,Feminin,2010 et après,47
+216,Sousse,Privé,Masculin,2008 et avant,4
+217,Sousse,Privé,Masculin,2009,182
+218,Sousse,Privé,Masculin,2010 et après,25
+219,Sousse,Privé,Feminin,2008 et avant,3
+220,Sousse,Privé,Feminin,2009,186
+221,Sousse,Privé,Feminin,2010 et après,33
+222,Sousse,Libre,Feminin,2009,3
+223,Nabeul,Public,Masculin,2008 et avant,2
+224,Nabeul,Public,Masculin,2009,330
+225,Nabeul,Public,Masculin,2010 et après,19
+226,Nabeul,Public,Feminin,2008 et avant,6
+227,Nabeul,Public,Feminin,2009,574
+228,Nabeul,Public,Feminin,2010 et après,42
+229,Nabeul,Privé,Masculin,2009,71
+230,Nabeul,Privé,Masculin,2010 et après,8
+231,Nabeul,Privé,Feminin,2008 et avant,1
+232,Nabeul,Privé,Feminin,2009,104
+233,Nabeul,Privé,Feminin,2010 et après,12
+234,Nabeul,Libre,Masculin,2009,1

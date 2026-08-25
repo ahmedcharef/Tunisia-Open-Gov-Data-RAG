@@ -20,3 +20,10 @@ sentence-transformers
 python-dotenv
 tqdm
 streamlit
+
+# LLM providers
+langchain-ollama>=0.2.0
+
+# Data loading
+pandas>=2.0.0
+openpyxl>=3.1.0
