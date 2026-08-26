@@ -89,8 +89,6 @@ def ingest_education_csvs(dataset: str = None) -> None:
 
     logger.info(f"Files to ingest ({len(all_file_paths)}): {[f.name for f in all_file_paths]}")
 
-    logger.info(f"Found {len(csv_files)} CSV and {len(xlsx_files)} XLSX file(s)")
-
     all_docs: List[Document] = []
 
     for file_path in all_file_paths:
@@ -137,7 +135,8 @@ def ingest_education_csvs(dataset: str = None) -> None:
         add_start_index=True,
     )
     chunks = text_splitter.split_documents(all_docs)
-    logger.info(f"Created {len(chunks):,} chunks")
+    total_chunks = len(chunks)
+    logger.info(f"Created {total_chunks:,} chunks")
 
     # ─── Embed & Store ───────────────────────────────────────────
     embeddings = HuggingFaceEmbeddings(
@@ -154,18 +153,30 @@ def ingest_education_csvs(dataset: str = None) -> None:
             "hnsw:space": "cosine",
             "hnsw:construction_ef": 40,
             "hnsw:M": 16,
-            "source_row_count": len(all_docs),
-            "chunk_count": total_chunks,
         },
     )
 
     batch_size = 400
-    total_chunks = len(chunks)
     with tqdm(total=total_chunks, desc="Indexing", unit="chunk") as pbar:
         for i in range(0, total_chunks, batch_size):
             batch = chunks[i : i + batch_size]
             vectorstore.add_documents(batch)
             pbar.update(len(batch))
+
+    # Store ingestion stats as a sentinel document so they survive restarts.
+    # Chroma collection_metadata only supports hnsw:* keys — custom keys are dropped.
+    _STATS_ID = "__ingest_stats__"
+    vectorstore._collection.upsert(
+        ids=[_STATS_ID],
+        documents=[f"source_row_count={len(all_docs)} chunk_count={total_chunks}"],
+        metadatas=[{
+            "source_row_count": len(all_docs),
+            "chunk_count": total_chunks,
+            "dataset": dataset,
+            "_sentinel": "true",
+        }],
+        embeddings=[[0.0] * 1024],   # dummy vector — multilingual-e5-large is 1024-dim
+    )
 
     logger.info(
         f"✅ Ingestion completed successfully!\n"
