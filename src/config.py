@@ -104,6 +104,18 @@ class Config:
         ],
     }
 
+    # ====================== TUNISIAN GOVERNORATES ======================
+    # Complete list of all 24 governorates, stored UPPERCASE to match Chroma metadata.
+    GOVERNORATES: list = [
+        "TUNIS", "ARIANA", "MANOUBA", "BEN AROUS",
+        "NABEUL", "ZAGHOUAN", "BIZERTE",
+        "BÉJA", "JENDOUBA", "LE KEF", "SILIANA",
+        "SOUSSE", "MONASTIR", "MAHDIA",
+        "SFAX", "KAIROUAN", "KASSERINE", "SIDI BOUZID",
+        "GABÈS", "MEDENINE", "TATAOUINE",
+        "GAFSA", "TOZEUR", "KÉBILI",
+    ]
+
     # ====================== EMBEDDINGS ======================
     EMBEDDING_MODEL: str = "intfloat/multilingual-e5-large"
 

@@ -96,10 +96,9 @@ def get_available_governorates(dataset: str = None) -> List[str]:
                 if not doc:
                     continue
                 text = str(doc).lower()
-                for known in ["béja", "tunis", "sfax", "sousse", "ariana", "ben arous", "manouba",
-                             "nabeul", "bizerte", "monastir", "mahdia", "kairouan", "gafsa", "medenine"]:
+                for known in [g.lower() for g in Config.GOVERNORATES]:
                     if known in text:
-                        governorates.add(known.title())
+                        governorates.add(known.upper())
                         break
 
         unique_list = sorted(list(governorates))
@@ -192,10 +191,9 @@ def get_governorate_breakdown(dataset: str = None, breakdown_col: str = None) ->
             # Fallback for gouvernorat only: scan page_content text
             if not val and breakdown_col == "gouvernorat" and doc:
                 text = str(doc).lower()
-                for known in ["béja", "tunis", "sfax", "sousse", "ariana", "ben arous", "manouba",
-                              "nabeul", "bizerte", "monastir", "mahdia", "kairouan", "gafsa", "medenine"]:
+                for known in [g.lower() for g in Config.GOVERNORATES]:
                     if known in text:
-                        val = known.title()
+                        val = known.upper()
                         break
 
             if val:
