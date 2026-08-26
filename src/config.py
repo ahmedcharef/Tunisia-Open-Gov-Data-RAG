@@ -119,6 +119,17 @@ class Config:
     # ====================== EMBEDDINGS ======================
     EMBEDDING_MODEL: str = "intfloat/multilingual-e5-large"
 
+    # ====================== RERANKER ======================
+    # Cross-encoder used to re-rank retrieved chunks before sending to the LLM.
+    # Multilingual model — handles Arabic, French, and English queries.
+    USE_RERANKER: bool = os.getenv("USE_RERANKER", "true").strip().lower() != "false"
+    RERANKER_MODEL: str = os.getenv(
+        "RERANKER_MODEL",
+        "cross-encoder/mmarco-mMiniLMv2-L12-H384-v1"
+    ).strip()
+    # Retrieve k * RERANK_FACTOR candidates, rerank, then keep k
+    RERANK_FACTOR: int = int(os.getenv("RERANK_FACTOR", "3"))
+
     # ====================== LLM ======================
     LLM_PROVIDER: str = os.getenv("LLM_PROVIDER", "openrouter").strip().lower()
     OPENROUTER_API_KEY: Optional[str] = os.getenv("OPENROUTER_API_KEY")

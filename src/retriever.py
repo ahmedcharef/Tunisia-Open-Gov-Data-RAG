@@ -20,14 +20,78 @@ from src.config import Config
 
 logger = logging.getLogger("tunisia-rag")
 
-# Module-level embedding cache — initialized once, reused across all calls
+# Module-level caches — initialized once, reused across all calls
 _embeddings_instance: HuggingFaceEmbeddings = None
+_reranker_instance = None  # sentence_transformers.CrossEncoder
 
 def _get_embeddings() -> HuggingFaceEmbeddings:
     global _embeddings_instance
     if _embeddings_instance is None:
         _embeddings_instance = HuggingFaceEmbeddings(model_name=Config.EMBEDDING_MODEL)
     return _embeddings_instance
+
+
+def _get_reranker():
+    """Return a cached CrossEncoder instance for re-ranking."""
+    global _reranker_instance
+    if _reranker_instance is None:
+        try:
+            from sentence_transformers import CrossEncoder
+            _reranker_instance = CrossEncoder(
+                Config.RERANKER_MODEL,
+                max_length=512,
+            )
+            logger.info(f"Reranker loaded: {Config.RERANKER_MODEL}")
+        except Exception as e:
+            logger.warning(f"Failed to load reranker '{Config.RERANKER_MODEL}': {e}")
+            _reranker_instance = None
+    return _reranker_instance
+
+
+def rerank_documents(
+    query: str,
+    documents: List[LCDocument],
+    top_k: int,
+) -> List[LCDocument]:
+    """Re-rank retrieved documents using a cross-encoder.
+
+    A cross-encoder scores each (query, document) pair jointly, giving much
+    better ranking accuracy than the bi-encoder used for retrieval.
+
+    Typical pipeline:
+        retrieve k * RERANK_FACTOR candidates → rerank → return top k
+
+    Args:
+        query: the user's (possibly reformulated) question
+        documents: candidate documents from the retriever
+        top_k: how many to keep after reranking
+
+    Returns the top_k documents sorted by cross-encoder score (highest first).
+    Falls back to the original order if the reranker is unavailable.
+    """
+    if not documents:
+        return documents
+
+    reranker = _get_reranker()
+    if reranker is None or not Config.USE_RERANKER:
+        return documents[:top_k]
+
+    try:
+        pairs = [(query, doc.page_content) for doc in documents]
+        scores = reranker.predict(pairs)
+
+        scored = sorted(zip(scores, documents), key=lambda x: x[0], reverse=True)
+        reranked = [doc for _, doc in scored[:top_k]]
+
+        logger.info(
+            f"Reranked {len(documents)} → {len(reranked)} docs | "
+            f"top score: {scored[0][0]:.3f}"
+        )
+        return reranked
+
+    except Exception as e:
+        logger.warning(f"Reranking failed: {e} — using original order")
+        return documents[:top_k]
 
 
 def get_vectorstore(dataset: str = None):

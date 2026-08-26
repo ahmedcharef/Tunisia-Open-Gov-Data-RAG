@@ -3,17 +3,15 @@ Shared RAG service with multi-dataset and governorate filtering.
 """
 
 from typing import Dict, Any, List
-from operator import itemgetter
 
 from langchain_core.messages import HumanMessage, AIMessage
 from langchain_openai import ChatOpenAI
 from langchain_ollama import ChatOllama
 from langchain_core.output_parsers import StrOutputParser
-from langchain_core.runnables import RunnableParallel
 
 from src.config import Config, logger
 from src.prompts import get_contextualize_prompt, get_qa_prompt
-from src.retriever import get_retriever, get_hybrid_retriever
+from src.retriever import get_retriever, get_hybrid_retriever, rerank_documents
 from src.utils import extract_gouvernorat, format_source_citation
 
 
@@ -64,56 +62,62 @@ class RAGService:
                 messages.append(AIMessage(content=content))
         return messages
 
-    def create_rag_chain(self, retriever):
-        contextualize_chain = self.contextualize_prompt | self.llm | StrOutputParser()
-
-        rag_chain = (
-            RunnableParallel({
-                "context": contextualize_chain | retriever,
-                "input": itemgetter("input"),
-                "chat_history": itemgetter("chat_history"),
-            })
-            | RunnableParallel({
-                "answer": self.qa_prompt | self.llm | StrOutputParser(),
-                "context": itemgetter("context"),
-            })
-        )
-        return rag_chain
+    def _contextualize_query(self, user_input: str, history_messages: List) -> str:
+        """Rewrite the user's question into a standalone query using chat history."""
+        if not history_messages:
+            return user_input
+        try:
+            chain = self.contextualize_prompt | self.llm | StrOutputParser()
+            return chain.invoke({"input": user_input, "chat_history": history_messages})
+        except Exception:
+            return user_input  # fallback to original question
 
     def query(self, user_input: str, chat_history: List = None, k: int = 8, gouvernorat: str = None, dataset: str = None) -> Dict[str, Any]:
         if chat_history is None:
             chat_history = []
 
         try:
-            # Use passed gouvernorat or extract from query text
-            gov = gouvernorat or extract_gouvernorat(user_input, dataset=dataset or self.dataset)
-            
-            logger.info(f"Query: '{user_input}' | Governorate filter: {gov} | Dataset: {dataset or self.dataset}")
+            active_dataset = dataset or self.dataset
+            gov = gouvernorat or extract_gouvernorat(user_input, dataset=active_dataset)
 
-            if Config.USE_HYBRID_SEARCH:
-                retriever = get_hybrid_retriever(k=k, gouvernorat=gov, dataset=dataset or self.dataset)
-            else:
-                retriever = get_retriever(k=k, gouvernorat=gov, dataset=dataset or self.dataset)
+            logger.info(f"Query: '{user_input}' | gov={gov} | dataset={active_dataset}")
 
-            chain = self.create_rag_chain(retriever)
             history_messages = self._convert_history(chat_history)
 
-            result = chain.invoke({
-                "input": user_input,
-                "chat_history": history_messages
-            })
+            # ── Step 1: Contextualize ──────────────────────────────────
+            # Rewrite question to be standalone (uses chat history)
+            standalone_query = self._contextualize_query(user_input, history_messages)
 
-            answer = result["answer"]
-            context_docs = result.get("context", [])
+            # ── Step 2: Retrieve ──────────────────────────────────────
+            # Over-retrieve if reranking is enabled (k * RERANK_FACTOR candidates)
+            retrieve_k = k * Config.RERANK_FACTOR if Config.USE_RERANKER else k
+            if Config.USE_HYBRID_SEARCH:
+                retriever = get_hybrid_retriever(k=retrieve_k, gouvernorat=gov, dataset=active_dataset)
+            else:
+                retriever = get_retriever(k=retrieve_k, gouvernorat=gov, dataset=active_dataset)
 
-            logger.info(f"Retrieved {len(context_docs)} documents for this query")
+            context_docs = retriever.invoke(standalone_query)
+            logger.info(f"Retrieved {len(context_docs)} candidate docs")
+
+            # ── Step 3: Rerank ────────────────────────────────────────
+            if Config.USE_RERANKER:
+                context_docs = rerank_documents(standalone_query, context_docs, top_k=k)
+
+            # ── Step 4: Generate answer ───────────────────────────────
+            context_text = "\n\n".join(doc.page_content for doc in context_docs)
+            filled_prompt = self.qa_prompt.format_messages(
+                context=context_text,
+                input=user_input,
+                chat_history=history_messages,
+            )
+            answer = (self.llm | StrOutputParser()).invoke(filled_prompt)
 
             sources = [format_source_citation(doc) for doc in context_docs[:6] if format_source_citation(doc)]
 
             return {
                 "answer": answer,
                 "sources": sources,
-                "success": True
+                "success": True,
             }
 
         except Exception as e:
