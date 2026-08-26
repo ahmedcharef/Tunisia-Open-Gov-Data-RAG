@@ -4,7 +4,6 @@ query.py - Command Line Interface for Tunisia Multi-Dataset RAG
 """
 
 import argparse
-import sys
 from typing import List, Tuple
 
 from src.config import Config, logger
@@ -26,9 +25,11 @@ def main():
     if args.stats:
         try:
             stats = get_vectorstore_stats(args.dataset)
-            print(f"📊 Dataset: {args.dataset}")
-            print(f"   Total establishments: {stats.get('total_documents', 0):,}")
+            print(f"📊 Dataset  : {args.dataset}")
             print(f"   Collection: {stats.get('collection_name', 'N/A')}")
+            print(f"   Chunks    : {stats.get('total_documents', 0):,}")
+            row_count = stats.get('source_row_count')
+            print(f"   Rows      : {row_count:,}" if row_count else "   Rows      : — (re-ingest to compute)")
         except Exception as e:
             logger.error(f"Failed to retrieve stats: {e}")
             print("❌ Could not retrieve statistics.")
