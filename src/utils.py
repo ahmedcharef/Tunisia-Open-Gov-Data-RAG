@@ -6,47 +6,50 @@ Includes helper functions for governorate extraction and source citation formatt
 import logging
 from src.retriever import get_available_governorates
 
-def extract_gouvernorat(query: str) -> str | None:
-    """Improved governorate extraction with fuzzy matching."""
+def extract_gouvernorat(query: str, dataset: str = None) -> str | None:
+    """Extract a governorate name from a free-text query using fuzzy matching.
+    
+    Returns the value in UPPERCASE to match how it is stored in Chroma metadata.
+    """
     if not query:
         return None
     
     query_lower = query.lower().strip()
-    available_govs = get_available_governorates()
+    available_govs = get_available_governorates(dataset)
     
-    # Direct match (case insensitive)
+    # Direct match against what's actually in the collection (stored uppercase)
     for gov in available_govs:
         if gov.lower() in query_lower:
-            return gov
+            return gov  # already uppercase from ingest
     
-    # Partial / fuzzy match (e.g., "sfaxien", "tunisie", "sous")
+    # Partial / fuzzy match — returns uppercase to stay consistent
     fuzzy_map = {
-        "tunis": "Tunis",
-        "sfax": "Sfax",
-        "sousse": "Sousse",
-        "ariana": "Ariana",
-        "ben arous": "Ben Arous",
-        "manouba": "Manouba",
-        "nabeul": "Nabeul",
-        "bizerte": "Bizerte",
-        "monastir": "Monastir",
-        "mahdia": "Mahdia",
-        "kairouan": "Kairouan",
-        "gafsa": "Gafsa",
-        "medenine": "Medenine",
-        "béja": "Béja",
-        "beja": "Béja",
-        "jendouba": "Jendouba",
-        "kef": "Le Kef",
-        "siliana": "Siliana",
-        "zaghouan": "Zaghouan",
-        "kasserine": "Kasserine",
-        "sidi bouzid": "Sidi Bouzid",
-        "gabes": "Gabès",
-        "gabès": "Gabès",
-        "tataouine": "Tataouine",
-        "tozeur": "Tozeur",
-        "kebili": "Kébili",
+        "tunis": "TUNIS",
+        "sfax": "SFAX",
+        "sousse": "SOUSSE",
+        "ariana": "ARIANA",
+        "ben arous": "BEN AROUS",
+        "manouba": "MANOUBA",
+        "nabeul": "NABEUL",
+        "bizerte": "BIZERTE",
+        "monastir": "MONASTIR",
+        "mahdia": "MAHDIA",
+        "kairouan": "KAIROUAN",
+        "gafsa": "GAFSA",
+        "medenine": "MEDENINE",
+        "béja": "BÉJA",
+        "beja": "BÉJA",
+        "jendouba": "JENDOUBA",
+        "kef": "LE KEF",
+        "siliana": "SILIANA",
+        "zaghouan": "ZAGHOUAN",
+        "kasserine": "KASSERINE",
+        "sidi bouzid": "SIDI BOUZID",
+        "gabes": "GABÈS",
+        "gabès": "GABÈS",
+        "tataouine": "TATAOUINE",
+        "tozeur": "TOZEUR",
+        "kebili": "KÉBILI",
     }
     
     for key, value in fuzzy_map.items():

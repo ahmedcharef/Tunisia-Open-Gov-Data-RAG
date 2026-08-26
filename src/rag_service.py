@@ -9,7 +9,7 @@ from langchain_core.messages import HumanMessage, AIMessage
 from langchain_openai import ChatOpenAI
 from langchain_ollama import ChatOllama
 from langchain_core.output_parsers import StrOutputParser
-from langchain_core.runnables import RunnablePassthrough, RunnableParallel
+from langchain_core.runnables import RunnableParallel
 
 from src.config import Config, logger
 from src.prompts import get_contextualize_prompt, get_qa_prompt
@@ -85,8 +85,8 @@ class RAGService:
             chat_history = []
 
         try:
-            # Use passed gouvernorat or extract from query
-            gov = gouvernorat or extract_gouvernorat(user_input)
+            # Use passed gouvernorat or extract from query text
+            gov = gouvernorat or extract_gouvernorat(user_input, dataset=dataset or self.dataset)
             
             logger.info(f"Query: '{user_input}' | Governorate filter: {gov} | Dataset: {dataset or self.dataset}")
 
