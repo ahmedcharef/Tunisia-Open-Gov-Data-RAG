@@ -2,7 +2,7 @@
 Shared RAG service with multi-dataset and governorate filtering.
 """
 
-from typing import Dict, Any, List, Tuple
+from typing import Dict, Any, List
 from operator import itemgetter
 
 from langchain_core.messages import HumanMessage, AIMessage
