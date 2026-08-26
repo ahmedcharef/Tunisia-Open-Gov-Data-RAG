@@ -63,30 +63,35 @@ def get_available_governorates(dataset: str = None) -> List[str]:
         return []
 
     try:
-        MAX_SAMPLE = 3000
         all_ids = vectorstore._collection.get(include=[])["ids"]
-        sample_ids = all_ids[:MAX_SAMPLE] if len(all_ids) > MAX_SAMPLE else all_ids
+        all_ids = [i for i in all_ids if i != "__ingest_stats__"]
 
-        results = vectorstore._collection.get(ids=sample_ids, include=["metadatas", "documents"])
-
+        BATCH = 2000
         governorates = set()
         possible_keys = ["gouvernorat", "governorate", "Gouvernorat", "Governorate", "wilaya", "région", "region"]
 
+        all_metadatas = []
+        all_documents = []
+        for i in range(0, len(all_ids), BATCH):
+            batch = vectorstore._collection.get(ids=all_ids[i:i + BATCH], include=["metadatas", "documents"])
+            all_metadatas.extend(batch.get("metadatas", []))
+            all_documents.extend(batch.get("documents", []))
+
         # Strategy 1: Metadata
-        for meta in results.get("metadatas", []):
+        for meta in all_metadatas:
             if not meta:
                 continue
             for key in possible_keys:
                 if key in meta and meta[key]:
                     gov = str(meta[key]).strip()
                     if gov and len(gov) > 2:
-                        governorates.add(gov)  # stored as uppercase by ingest
+                        governorates.add(gov)
                     break
 
-        # Strategy 2: Parse from page_content (very important for your CSVs)
+        # Strategy 2: Parse from page_content
         if len(governorates) < 5:
             logger.info("Falling back to parsing governorate from page_content...")
-            for doc in results.get("documents", []):
+            for doc in all_documents:
                 if not doc:
                     continue
                 text = str(doc).lower()
@@ -112,12 +117,25 @@ def get_vectorstore_stats(dataset: str = None) -> Dict:
         return {"total_documents": 0, "status": "unavailable"}
 
     try:
-        chunk_count = vectorstore._collection.count()
-        # source_row_count is stored in collection metadata during ingestion
-        col_meta = vectorstore._collection.metadata or {}
-        row_count = col_meta.get("source_row_count", None)
+        _STATS_ID = "__ingest_stats__"
+        # Total count includes the sentinel doc — subtract 1 if present
+        total = vectorstore._collection.count()
+
+        # Read ingestion stats from the sentinel document
+        row_count = None
+        chunk_count = None
+        try:
+            result = vectorstore._collection.get(ids=[_STATS_ID], include=["metadatas"])
+            if result and result.get("metadatas"):
+                meta = result["metadatas"][0]
+                row_count = meta.get("source_row_count")
+                chunk_count = meta.get("chunk_count")
+                total = total - 1   # exclude sentinel from chunk count
+        except Exception:
+            pass  # sentinel not present in older collections
+
         return {
-            "total_documents": chunk_count,
+            "total_documents": chunk_count if chunk_count is not None else total,
             "source_row_count": row_count,
             "collection_name": Config.get_collection_name(dataset),
             "status": "ready"
@@ -127,59 +145,82 @@ def get_vectorstore_stats(dataset: str = None) -> Dict:
         return {"total_documents": 0, "source_row_count": None, "status": "error", "error": str(e)}
 
 
-def get_governorate_breakdown(dataset: str = None) -> pd.DataFrame:
-    """Generate governorate breakdown with very robust parsing."""
+def get_governorate_breakdown(dataset: str = None, breakdown_col: str = None) -> pd.DataFrame:
+    """Generate a breakdown by the given metadata field.
+    
+    Args:
+        dataset: dataset key (used to open the right collection)
+        breakdown_col: canonical metadata field to group by (e.g. 'gouvernorat', 'zone_geo').
+                       Falls back to the first entry in Config.DATASET_UI[dataset]['breakdowns'].
+    """
     try:
         vectorstore = get_vectorstore(dataset)
         if vectorstore is None:
-            return pd.DataFrame(columns=["Governorate", "Count", "Percentage"])
+            return pd.DataFrame(columns=["Value", "Count", "Percentage"])
 
-        MAX_SAMPLE = 2500
+        # Resolve which field to group by
+        if not breakdown_col:
+            ui_cfg = Config.DATASET_UI.get(dataset or Config.DEFAULT_DATASET, {})
+            breakdowns = ui_cfg.get("breakdowns", [])
+            breakdown_col = breakdowns[0]["col"] if breakdowns else "gouvernorat"
+
+        # Fetch ALL IDs then batch-read metadata — no arbitrary cap
         all_ids = vectorstore._collection.get(include=[])["ids"]
         if not all_ids:
-            return pd.DataFrame(columns=["Governorate", "Count", "Percentage"])
+            return pd.DataFrame(columns=[breakdown_col, "Count", "Percentage"])
 
-        sample_ids = all_ids[:MAX_SAMPLE] if len(all_ids) > MAX_SAMPLE else all_ids
+        # Exclude the stats sentinel document
+        all_ids = [i for i in all_ids if i != "__ingest_stats__"]
 
-        results = vectorstore._collection.get(ids=sample_ids, include=["metadatas", "documents"])
+        # Fetch in batches of 2000 to stay memory-friendly on large collections
+        BATCH = 2000
+        include = ["metadatas", "documents"] if breakdown_col == "gouvernorat" else ["metadatas"]
+        all_metadatas = []
+        all_documents = []
+        for i in range(0, len(all_ids), BATCH):
+            batch = vectorstore._collection.get(ids=all_ids[i:i + BATCH], include=include)
+            all_metadatas.extend(batch.get("metadatas", []))
+            # documents only present when gouvernorat fallback is needed
+            docs = batch.get("documents")
+            if docs:
+                all_documents.extend(docs)
+            else:
+                all_documents.extend([None] * len(batch.get("metadatas", [])))
 
-        gov_counts = Counter()
-        possible_keys = ["gouvernorat", "governorate", "Gouvernorat", "Governorate", "wilaya", "région", "region"]
+        counts = Counter()
 
-        for meta, doc in zip(results.get("metadatas", []), results.get("documents", [])):
-            gov = None
-            # Try metadata
+        for meta, doc in zip(all_metadatas, all_documents):
+            val = None
+
             if meta:
-                for key in possible_keys:
-                    if key in meta and meta[key]:
-                        gov = str(meta[key]).strip()  # stored as uppercase by ingest
-                        break
+                val = meta.get(breakdown_col)
+                if val:
+                    val = str(val).strip()
 
-            # Fallback: parse from page_content
-            if not gov and doc:
+            # Fallback for gouvernorat only: scan page_content text
+            if not val and breakdown_col == "gouvernorat" and doc:
                 text = str(doc).lower()
                 for known in ["béja", "tunis", "sfax", "sousse", "ariana", "ben arous", "manouba",
-                             "nabeul", "bizerte", "monastir", "mahdia", "kairouan", "gafsa", "medenine"]:
+                              "nabeul", "bizerte", "monastir", "mahdia", "kairouan", "gafsa", "medenine"]:
                     if known in text:
-                        gov = known.title()
+                        val = known.title()
                         break
 
-            if gov:
-                gov_counts[gov] += 1
+            if val:
+                counts[val] += 1
 
-        if not gov_counts:
-            logger.warning("No governorate data found even after fallback parsing.")
-            return pd.DataFrame(columns=["Governorate", "Count", "Percentage"])
+        if not counts:
+            logger.warning(f"No '{breakdown_col}' data found for dataset '{dataset}'.")
+            return pd.DataFrame(columns=[breakdown_col, "Count", "Percentage"])
 
-        df = pd.DataFrame(list(gov_counts.items()), columns=["Governorate", "Count"])
+        df = pd.DataFrame(list(counts.items()), columns=[breakdown_col, "Count"])
         df = df.sort_values(by="Count", ascending=False).reset_index(drop=True)
-
         total = df["Count"].sum()
         df["Percentage"] = (df["Count"] / total * 100).round(1) if total > 0 else 0.0
 
-        logger.info(f"Generated governorate breakdown with {len(df)} entries")
+        logger.info(f"Breakdown by '{breakdown_col}' for dataset '{dataset}': {len(df)} values")
         return df
 
     except Exception as e:
-        logger.warning(f"Failed to generate governorate breakdown: {e}")
-        return pd.DataFrame(columns=["Governorate", "Count", "Percentage"])
+        logger.warning(f"Failed to generate breakdown: {e}")
+        return pd.DataFrame(columns=["Value", "Count", "Percentage"])
