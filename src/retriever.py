@@ -2,8 +2,10 @@
 Centralized retriever logic with very robust governorate extraction and breakdown.
 """
 
+import json
 import logging
 from collections import Counter
+from pathlib import Path
 from typing import List, Dict
 
 import pandas as pd
@@ -64,7 +66,6 @@ def get_available_governorates(dataset: str = None) -> List[str]:
 
     try:
         all_ids = vectorstore._collection.get(include=[])["ids"]
-        all_ids = [i for i in all_ids if i != "__ingest_stats__"]
 
         BATCH = 2000
         governorates = set()
@@ -107,8 +108,7 @@ def get_available_governorates(dataset: str = None) -> List[str]:
 
     except Exception as e:
         logger.warning(f"Could not extract governorates: {e}")
-        return ["TUNIS", "SFAX", "SOUSSE", "ARIANA", "BEN AROUS", "MANOUBA", "NABEUL",
-                "BIZERTE", "MONASTIR", "MAHDIA", "KAIROUAN", "GAFSA", "MEDENINE"]
+        return []
 
 
 def get_vectorstore_stats(dataset: str = None) -> Dict:
@@ -117,22 +117,17 @@ def get_vectorstore_stats(dataset: str = None) -> Dict:
         return {"total_documents": 0, "status": "unavailable"}
 
     try:
-        _STATS_ID = "__ingest_stats__"
-        # Total count includes the sentinel doc — subtract 1 if present
         total = vectorstore._collection.count()
 
-        # Read ingestion stats from the sentinel document
+        # Read ingestion stats from the JSON file written by ingest.py
+        collection_name = Config.get_collection_name(dataset)
+        stats_path = Path(Config.CHROMA_PERSIST_DIR) / f"{collection_name}_stats.json"
         row_count = None
         chunk_count = None
-        try:
-            result = vectorstore._collection.get(ids=[_STATS_ID], include=["metadatas"])
-            if result and result.get("metadatas"):
-                meta = result["metadatas"][0]
-                row_count = meta.get("source_row_count")
-                chunk_count = meta.get("chunk_count")
-                total = total - 1   # exclude sentinel from chunk count
-        except Exception:
-            pass  # sentinel not present in older collections
+        if stats_path.exists():
+            data = json.loads(stats_path.read_text())
+            row_count = data.get("source_row_count")
+            chunk_count = data.get("chunk_count")
 
         return {
             "total_documents": chunk_count if chunk_count is not None else total,
@@ -168,9 +163,6 @@ def get_governorate_breakdown(dataset: str = None, breakdown_col: str = None) ->
         all_ids = vectorstore._collection.get(include=[])["ids"]
         if not all_ids:
             return pd.DataFrame(columns=[breakdown_col, "Count", "Percentage"])
-
-        # Exclude the stats sentinel document
-        all_ids = [i for i in all_ids if i != "__ingest_stats__"]
 
         # Fetch in batches of 2000 to stay memory-friendly on large collections
         BATCH = 2000

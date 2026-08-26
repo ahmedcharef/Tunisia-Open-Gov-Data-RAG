@@ -9,11 +9,13 @@ Supports:
 - Chunked embedding into a named Chroma collection
 """
 
+import json
 import logging
 import warnings
 from pathlib import Path
 from typing import List
 
+import chromadb
 import pandas as pd
 from dotenv import load_dotenv
 from tqdm import tqdm
@@ -144,7 +146,15 @@ def ingest_dataset(dataset: str = None) -> None:
         model_kwargs={"device": "cpu"},
     )
 
-    logger.info("Creating / updating Chroma collection...")
+    # Delete the existing collection before re-ingesting to prevent duplicate chunks
+    chroma_client = chromadb.PersistentClient(path=Config.CHROMA_PERSIST_DIR)
+    try:
+        chroma_client.delete_collection(collection_name)
+        logger.info(f"Deleted existing collection '{collection_name}' for fresh ingest")
+    except Exception:
+        pass  # collection didn't exist yet
+
+    logger.info("Creating Chroma collection...")
     vectorstore = Chroma(
         persist_directory=Config.CHROMA_PERSIST_DIR,
         embedding_function=embeddings,
@@ -163,20 +173,14 @@ def ingest_dataset(dataset: str = None) -> None:
             vectorstore.add_documents(batch)
             pbar.update(len(batch))
 
-    # Store ingestion stats as a sentinel document so they survive restarts.
-    # Chroma collection_metadata only supports hnsw:* keys — custom keys are dropped.
-    _STATS_ID = "__ingest_stats__"
-    vectorstore._collection.upsert(
-        ids=[_STATS_ID],
-        documents=[f"source_row_count={len(all_docs)} chunk_count={total_chunks}"],
-        metadatas=[{
-            "source_row_count": len(all_docs),
-            "chunk_count": total_chunks,
-            "dataset": dataset,
-            "_sentinel": "true",
-        }],
-        embeddings=[[0.0] * 1024],   # dummy vector — multilingual-e5-large is 1024-dim
-    )
+    # Store ingestion stats as a JSON file alongside the chroma_db.
+    # (A zero-vector sentinel doc can pollute similarity search results.)
+    stats_path = Path(Config.CHROMA_PERSIST_DIR) / f"{collection_name}_stats.json"
+    stats_path.write_text(json.dumps({
+        "source_row_count": len(all_docs),
+        "chunk_count": total_chunks,
+        "dataset": dataset,
+    }))
 
     logger.info(
         f"✅ Ingestion completed successfully!\n"
