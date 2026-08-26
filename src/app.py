@@ -39,7 +39,6 @@ if "current_dataset" not in st.session_state:
     st.session_state.current_dataset = Config.DEFAULT_DATASET
 
 # ====================== CACHED HELPERS ======================
-# ====================== CACHED HELPERS ======================
 @st.cache_resource
 def get_rag_service(dataset: str):
     return RAGService(dataset=dataset)
@@ -53,8 +52,8 @@ def cached_stats(dataset: str):
     return get_vectorstore_stats(dataset)
 
 @st.cache_data(ttl=300, show_spinner=False)
-def cached_breakdown(dataset: str):
-    return get_governorate_breakdown(dataset)
+def cached_breakdown(dataset: str, breakdown_col: str):
+    return get_governorate_breakdown(dataset, breakdown_col=breakdown_col)
 
 service = get_rag_service(st.session_state.current_dataset)
 available_govs = ["All"] + cached_governorates(st.session_state.current_dataset)
@@ -141,9 +140,8 @@ with tab_chat:
 with tab_stats:
     dataset = st.session_state.current_dataset
     ui_cfg = Config.DATASET_UI.get(dataset, {})
-    primary_metric = ui_cfg.get("primary_metric", "Total Records")
-    breakdown_col  = ui_cfg.get("breakdown_col")        # None means no breakdown chart
-    breakdown_label = ui_cfg.get("breakdown_label", "Breakdown")
+    primary_metric = ui_cfg.get("primary_metric", "Indexed Chunks")
+    breakdowns = ui_cfg.get("breakdowns", [])
 
     st.subheader(f"📊 Statistics — {dataset.title()} Dataset")
 
@@ -164,32 +162,37 @@ with tab_stats:
 
         st.markdown("---")
 
-        # ── Breakdown chart (only if this dataset has a meaningful grouping) ──
-        if breakdown_col:
-            st.subheader(f"{breakdown_label} Distribution")
-            df_breakdown = cached_breakdown(dataset)
+        # ── Breakdown charts — one per entry in Config.DATASET_UI[dataset]['breakdowns'] ──
+        if breakdowns:
+            for bd in breakdowns:
+                col_key   = bd.get("col")
+                col_label = bd.get("label", col_key)
 
-            if not df_breakdown.empty:
-                col1, col2 = st.columns([3, 2])
-                with col1:
-                    st.bar_chart(df_breakdown.set_index("Governorate")[:15])
-                with col2:
-                    st.dataframe(
-                        df_breakdown.head(15),
-                        use_container_width=True,
-                        hide_index=True,
+                st.subheader(f"{col_label} Distribution")
+                df_breakdown = cached_breakdown(dataset, col_key)
+
+                if not df_breakdown.empty:
+                    first_col = df_breakdown.columns[0]
+                    col1, col2 = st.columns([3, 2])
+                    with col1:
+                        st.bar_chart(df_breakdown.set_index(first_col)[:15])
+                    with col2:
+                        st.dataframe(
+                            df_breakdown.head(15),
+                            use_container_width=True,
+                            hide_index=True,
+                        )
+                    st.caption(
+                        f"Showing top {min(15, len(df_breakdown))} out of "
+                        f"{len(df_breakdown)} {col_label.lower()} values"
                     )
-                st.caption(
-                    f"Showing top {min(15, len(df_breakdown))} out of "
-                    f"{len(df_breakdown)} {breakdown_label.lower()} values"
-                )
-            else:
-                st.info(
-                    f"No {breakdown_label.lower()} breakdown available. "
-                    "Make sure you have run ingestion for this dataset."
-                )
+                else:
+                    st.info(
+                        f"No {col_label.lower()} data available. "
+                        "Make sure ingestion has been run for this dataset."
+                    )
         else:
-            st.info(f"No breakdown chart configured for the **{dataset}** dataset.")
+            st.info(f"No breakdown charts configured for the **{dataset}** dataset.")
 
         st.markdown("---")
 
@@ -203,7 +206,7 @@ with tab_stats:
 **Source rows:** {f"{stats.get('source_row_count'):,}" if stats.get('source_row_count') else "re-ingest to compute"}  
 **Indexed chunks:** {total_docs:,}
 
-**Source files ({len(Config.DATASET_FILES.get(dataset) or [])}):**
+**Source files ({len(files)}):**
 {files_md}
 
 Governorate filtering is dynamic based on actual indexed data. Source citations are shown for every answer.
