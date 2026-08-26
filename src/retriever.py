@@ -13,6 +13,7 @@ from langchain_chroma import Chroma
 from langchain_community.retrievers import BM25Retriever
 from langchain_classic.retrievers import EnsembleRetriever
 from langchain_core.retrievers import BaseRetriever
+from langchain_core.documents import Document as LCDocument
 from langchain_huggingface import HuggingFaceEmbeddings
 
 from src.config import Config
@@ -117,7 +118,6 @@ def get_hybrid_retriever(
             all_docs_text.extend(batch.get("documents", []))
             all_docs_meta.extend(batch.get("metadatas", []))
 
-        from langchain_core.documents import Document as LCDocument
         lc_docs = [
             LCDocument(page_content=text, metadata=meta or {})
             for text, meta in zip(all_docs_text, all_docs_meta)

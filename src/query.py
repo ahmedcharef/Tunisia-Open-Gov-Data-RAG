@@ -55,6 +55,9 @@ def main():
     # Interactive Mode
     print("=" * 85)
     print(f"   🇹🇳 Tunisia RAG - Dataset: {args.dataset.upper()}")
+    model_name = Config.OPENROUTER_MODEL if Config.LLM_PROVIDER == "openrouter" else Config.OLLAMA_MODEL
+    print(f"   🤖 Model   : {model_name} ({Config.LLM_PROVIDER})")
+    print(f"   🔍 Search  : {'hybrid' if Config.USE_HYBRID_SEARCH else Config.SEARCH_TYPE} | k={args.k}")
     print("   Type 'exit', 'quit', or 'clear' to manage conversation")
     print("=" * 85)
 
