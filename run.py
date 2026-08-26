@@ -53,8 +53,8 @@ def main():
     if args.mode == "ingest":
         print("📥 Starting ingestion pipeline...\n")
         try:
-            from src.ingest import ingest_education_csvs
-            ingest_education_csvs(dataset=args.dataset)
+            from src.ingest import ingest_dataset
+            ingest_dataset(dataset=args.dataset)
         except Exception as e:
             print(f"❌ Ingestion failed: {e}")
             sys.exit(1)

@@ -43,7 +43,7 @@ CHUNK_OVERLAP = 180
 # Public entry point
 # ────────────────────────────────────────────────
 
-def ingest_education_csvs(dataset: str = None) -> None:
+def ingest_dataset(dataset: str = None) -> None:
     """Main ingestion pipeline — loads all CSV and XLSX files in data/.
     
     Args:
@@ -403,4 +403,4 @@ if __name__ == "__main__":
         help=f"Target dataset/collection to ingest into (default: {Config.DEFAULT_DATASET})",
     )
     args = parser.parse_args()
-    ingest_education_csvs(dataset=args.dataset)
+    ingest_dataset(dataset=args.dataset)
