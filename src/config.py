@@ -42,35 +42,40 @@ class Config:
     }
 
     # Controls what the Statistics Dashboard shows for each dataset.
-    # breakdown_col: canonical metadata field to group by (must match _COLUMN_ALIASES keys)
-    # breakdown_label: human-readable axis label
-    # primary_metric: label for the total-count metric card
-    # If breakdown_col is None, the governorate chart is hidden for that dataset.
+    # breakdowns: list of {col, label} — one chart per entry.
+    # col must match a canonical field name from _COLUMN_ALIASES in ingest.py.
+    # primary_metric: label for the total-count metric card.
     DATASET_UI: Dict[str, Dict] = {
         "education": {
             "primary_metric": "Indexed Chunks",
-            "breakdown_col": "gouvernorat",
-            "breakdown_label": "Governorate",
+            "breakdowns": [
+                {"col": "gouvernorat", "label": "Governorate"},
+            ],
         },
         "agriculture": {
             "primary_metric": "Indexed Chunks",
-            "breakdown_col": "gouvernorat",
-            "breakdown_label": "Governorate",
+            "breakdowns": [
+                {"col": "gouvernorat", "label": "Governorate"},
+            ],
         },
         "transport": {
             "primary_metric": "Indexed Chunks",
-            "breakdown_col": "gouvernorat",
-            "breakdown_label": "Governorate",
+            "breakdowns": [
+                {"col": "gouvernorat", "label": "Governorate (TRANSTU)"},
+                {"col": "zone_geo",    "label": "Geographic Zone (Tunisair)"},
+            ],
         },
         "social": {
             "primary_metric": "Indexed Chunks",
-            "breakdown_col": "gouvernorat",
-            "breakdown_label": "Governorate",
+            "breakdowns": [
+                {"col": "gouvernorat", "label": "Governorate (الولاية)"},
+            ],
         },
         "stats": {
             "primary_metric": "Indexed Chunks",
-            "breakdown_col": "gouvernorat",
-            "breakdown_label": "Region (CRE)",
+            "breakdowns": [
+                {"col": "gouvernorat", "label": "Region (CRE)"},
+            ],
         },
     }
     # Use None to ingest ALL files in data/ (legacy / catch-all behaviour).
