@@ -56,7 +56,6 @@ def cached_breakdown(dataset: str, breakdown_col: str):
     return get_governorate_breakdown(dataset, breakdown_col=breakdown_col)
 
 service = get_rag_service(st.session_state.current_dataset)
-available_govs = ["All"] + cached_governorates(st.session_state.current_dataset)
 
 # ====================== TABS ======================
 tab_chat, tab_stats = st.tabs(["💬 Chat Assistant", "📊 Statistics Dashboard"])
@@ -83,13 +82,19 @@ with st.sidebar:
     st.markdown("### Governorate Filter")
     selected_gov = st.selectbox(
         "Governorate",
-        options=available_govs,
+        options=["All"] + cached_governorates(st.session_state.current_dataset),
         index=0,
         key="gov_selector"
     )
 
     if st.button("🔄 Reset Conversation"):
         st.session_state.chat_history = []
+        st.rerun()
+
+    if st.button("🔄 Refresh Stats"):
+        cached_stats.clear()
+        cached_breakdown.clear()
+        cached_governorates.clear()
         st.rerun()
 
     st.markdown("---")
@@ -103,7 +108,7 @@ with tab_chat:
         with st.chat_message(message["role"]):
             st.markdown(message["content"])
 
-    if prompt := st.chat_input("Ask a question about educational institutions in Tunisia..."):
+    if prompt := st.chat_input(f"Ask a question about {st.session_state.current_dataset} data in Tunisia..."):
         st.session_state.chat_history.append({"role": "user", "content": prompt})
         with st.chat_message("user"):
             st.markdown(prompt)
