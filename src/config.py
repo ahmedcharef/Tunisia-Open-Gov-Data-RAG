@@ -96,7 +96,7 @@ class Config:
         ],
         "social": [
             "Programme des allocations enfants 0-5 ans-2024.csv",
-            "Programme des allocations enfants 6-18 ans- 2023csv",
+            "Programme des allocations enfants 6-18 ans-2023.csv",
         ],
         "stats": [
             "presentes-bac-2024.csv",
