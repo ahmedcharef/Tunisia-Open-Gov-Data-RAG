@@ -132,6 +132,10 @@ class Config:
     # Retrieval
     RETRIEVER_K: int = int(os.getenv("RETRIEVER_K", "8"))
     SEARCH_TYPE: str = os.getenv("SEARCH_TYPE", "mmr").strip()
+    # Weight for hybrid search: 0.0 = pure BM25, 1.0 = pure semantic, 0.5 = balanced
+    HYBRID_SEMANTIC_WEIGHT: float = float(os.getenv("HYBRID_SEMANTIC_WEIGHT", "0.7"))
+    # Set to false to use pure semantic (vector-only) retrieval
+    USE_HYBRID_SEARCH: bool = os.getenv("USE_HYBRID_SEARCH", "true").strip().lower() != "false"
 
     @classmethod
     def get_collection_name(cls, dataset: str = None) -> str:

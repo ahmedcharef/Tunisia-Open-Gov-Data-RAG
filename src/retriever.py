@@ -6,10 +6,13 @@ import json
 import logging
 from collections import Counter
 from pathlib import Path
-from typing import List, Dict
+from typing import List, Dict, Optional
 
 import pandas as pd
 from langchain_chroma import Chroma
+from langchain_community.retrievers import BM25Retriever
+from langchain_classic.retrievers import EnsembleRetriever
+from langchain_core.retrievers import BaseRetriever
 from langchain_huggingface import HuggingFaceEmbeddings
 
 from src.config import Config
@@ -56,6 +59,95 @@ def get_retriever(k: int = 8, gouvernorat: str = None, dataset: str = None):
     except Exception as e:
         logger.error(f"Failed to create retriever: {e}")
         raise
+
+
+def get_hybrid_retriever(
+    k: int = 8,
+    gouvernorat: str = None,
+    dataset: str = None,
+    semantic_weight: float = None,
+) -> BaseRetriever:
+    """Build a hybrid retriever combining semantic (vector) and keyword (BM25) search.
+
+    Hybrid search significantly improves recall for:
+    - Exact acronyms: "ENIT", "TRANSTU", "ISET"
+    - Proper names with unusual embeddings: "Ibn Khaldoun", "Ezzitouna"
+    - Arabic queries where the embedding model may tokenize differently
+
+    Args:
+        k: total documents to return (split between semantic and BM25 then merged)
+        gouvernorat: optional metadata filter
+        dataset: dataset key
+        semantic_weight: weight for semantic results (0.0–1.0).
+                         Defaults to Config.HYBRID_SEMANTIC_WEIGHT (0.7).
+                         BM25 weight = 1 - semantic_weight.
+
+    Returns an EnsembleRetriever that fuses both result sets using RRF scoring.
+    Falls back to pure semantic retriever if BM25 cannot be built.
+    """
+    if semantic_weight is None:
+        semantic_weight = Config.HYBRID_SEMANTIC_WEIGHT
+    bm25_weight = round(1.0 - semantic_weight, 4)
+
+    # ── Semantic retriever ───────────────────────────────────────
+    vectorstore = get_vectorstore(dataset)
+    if vectorstore is None:
+        raise RuntimeError(f"Vector store for dataset '{dataset or Config.DEFAULT_DATASET}' is not available.")
+
+    search_kwargs: Dict = {"k": k}
+    if gouvernorat:
+        search_kwargs["filter"] = {"gouvernorat": {"$eq": gouvernorat.upper()}}
+
+    semantic_retriever = vectorstore.as_retriever(
+        search_type=Config.SEARCH_TYPE,
+        search_kwargs=search_kwargs,
+    )
+
+    # ── BM25 retriever ───────────────────────────────────────────
+    # Fetch all documents to build the BM25 index. Only needs text content.
+    try:
+        all_ids = vectorstore._collection.get(include=[])["ids"]
+        BATCH = 2000
+        all_docs_text = []
+        all_docs_meta = []
+        for i in range(0, len(all_ids), BATCH):
+            batch = vectorstore._collection.get(
+                ids=all_ids[i:i + BATCH], include=["documents", "metadatas"]
+            )
+            all_docs_text.extend(batch.get("documents", []))
+            all_docs_meta.extend(batch.get("metadatas", []))
+
+        from langchain_core.documents import Document as LCDocument
+        lc_docs = [
+            LCDocument(page_content=text, metadata=meta or {})
+            for text, meta in zip(all_docs_text, all_docs_meta)
+            if text
+        ]
+
+        # Apply governorate filter to the BM25 corpus too
+        if gouvernorat:
+            gov_upper = gouvernorat.upper()
+            lc_docs = [d for d in lc_docs if d.metadata.get("gouvernorat") == gov_upper]
+
+        if not lc_docs:
+            logger.warning("BM25: no documents after filtering — falling back to semantic only")
+            return semantic_retriever
+
+        bm25_retriever = BM25Retriever.from_documents(lc_docs, k=k)
+
+        ensemble = EnsembleRetriever(
+            retrievers=[semantic_retriever, bm25_retriever],
+            weights=[semantic_weight, bm25_weight],
+        )
+        logger.info(
+            f"Hybrid retriever built | semantic={semantic_weight} BM25={bm25_weight} "
+            f"| corpus={len(lc_docs):,} docs"
+        )
+        return ensemble
+
+    except Exception as e:
+        logger.warning(f"Failed to build BM25 retriever: {e} — falling back to semantic only")
+        return semantic_retriever
 
 
 def get_available_governorates(dataset: str = None) -> List[str]:

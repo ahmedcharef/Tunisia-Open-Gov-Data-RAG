@@ -13,7 +13,7 @@ from langchain_core.runnables import RunnableParallel
 
 from src.config import Config, logger
 from src.prompts import get_contextualize_prompt, get_qa_prompt
-from src.retriever import get_retriever
+from src.retriever import get_retriever, get_hybrid_retriever
 from src.utils import extract_gouvernorat, format_source_citation
 
 
@@ -90,7 +90,10 @@ class RAGService:
             
             logger.info(f"Query: '{user_input}' | Governorate filter: {gov} | Dataset: {dataset or self.dataset}")
 
-            retriever = get_retriever(k=k, gouvernorat=gov, dataset=dataset or self.dataset)
+            if Config.USE_HYBRID_SEARCH:
+                retriever = get_hybrid_retriever(k=k, gouvernorat=gov, dataset=dataset or self.dataset)
+            else:
+                retriever = get_retriever(k=k, gouvernorat=gov, dataset=dataset or self.dataset)
 
             chain = self.create_rag_chain(retriever)
             history_messages = self._convert_history(chat_history)
