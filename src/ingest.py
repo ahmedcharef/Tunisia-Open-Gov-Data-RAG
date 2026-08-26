@@ -272,11 +272,11 @@ _COLUMN_ALIASES: dict = {
         "university_fr", "nom de la station", "destination", "label",
         "name",
         # Arabic
-        "إسم المؤسّسة", "المؤسسة", "إسم المؤسسة",
+        "إسم المؤسّسة", "إسم المؤسسة",
     ],
     "nom_ar": [
         "label_ar", "university_ar",
-        # Arabic name variants
+        # Arabic — separate from nom to avoid the duplicate المؤسسة key
         "المؤسسة",
     ],
     "type": [
