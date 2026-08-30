@@ -13,7 +13,7 @@ from src.config import Config, logger
 from src.prompts import get_contextualize_prompt, get_qa_prompt
 from src.retriever import get_retriever, get_hybrid_retriever, rerank_documents
 from src.utils import extract_gouvernorat, format_source_citation
-from src.opik_setup import track, get_langchain_tracer
+from src.opik_setup import track, get_langchain_tracer, flush_traces
 
 
 class RAGService:
@@ -128,8 +128,14 @@ class RAGService:
             )
             answer = (self.llm | StrOutputParser()).invoke(
                 filled_prompt,
-                config={"callbacks": callbacks},
+                config={
+                    "callbacks": callbacks,
+                    "metadata": {"dataset": active_dataset, "gouvernorat": gov or "all"},
+                },
             )
+
+            # Flush immediately so traces are not lost on Streamlit re-runs
+            flush_traces()
 
             sources = [format_source_citation(doc) for doc in context_docs[:6] if format_source_citation(doc)]
 

@@ -2,8 +2,8 @@
 Opik (Comet) observability setup for Tunisia RAG.
 
 Initialises the Opik client once at import time and exposes two helpers:
-  - track             : @track decorator for tracing functions (no-op when disabled)
-  - get_langchain_tracer : returns an OpikTracer callback for LangChain chains
+  - track                : @track decorator for tracing functions (no-op when disabled)
+  - get_langchain_tracer : returns the shared OpikTracer instance for LangChain callbacks
 """
 
 import logging
@@ -15,18 +15,22 @@ logger = logging.getLogger("tunisia-rag")
 
 # ── Initialise Opik client ──────────────────────────────────────────────────
 _opik_enabled = False
-_opik_track = None  # will be set to opik.track if init succeeds
+_opik_track = None      # opik.track function
+_opik_tracer = None     # shared OpikTracer instance (reused across all calls)
 
 if Config.OPIK_ENABLED:
     try:
         from opik import configure, track as _opik_track
-        from opik.integrations.langchain import OpikTracer  # noqa: F401
+        from opik.integrations.langchain import OpikTracer
 
         configure(
             project_name=Config.OPIK_PROJECT_NAME,
             workspace=Config.OPIK_WORKSPACE,
             use_local=Config.OPIK_USE_LOCAL,
         )
+
+        # Single shared tracer — survives Streamlit re-runs
+        _opik_tracer = OpikTracer(project_name=Config.OPIK_PROJECT_NAME)
 
         _opik_enabled = True
         logger.info(f"Opik tracing enabled | project='{Config.OPIK_PROJECT_NAME}'")
@@ -41,8 +45,7 @@ else:
 def track(name: Optional[str] = None, **decorator_kwargs) -> Callable:
     """Decorator that wraps a function in an Opik span.
 
-    Falls back to a transparent no-op when Opik is not enabled / not available,
-    so the rest of the codebase never needs to guard against import errors.
+    Falls back to a no-op when Opik is disabled so nothing breaks.
 
     Usage::
 
@@ -70,7 +73,11 @@ def track(name: Optional[str] = None, **decorator_kwargs) -> Callable:
 
 
 def get_langchain_tracer():
-    """Return an OpikTracer for LangChain callbacks, or None when disabled.
+    """Return the shared OpikTracer instance, or None when disabled.
+
+    The tracer is created once at startup and reused — this is important for
+    Streamlit where the script re-runs on every interaction. Using a shared
+    instance ensures traces are consistently sent to the same project.
 
     Usage::
 
@@ -78,11 +85,17 @@ def get_langchain_tracer():
         callbacks = [tracer] if tracer else []
         chain.invoke(input, config={"callbacks": callbacks})
     """
-    if not _opik_enabled:
-        return None
-    try:
-        from opik.integrations.langchain import OpikTracer
-        return OpikTracer()
-    except Exception as exc:
-        logger.debug(f"Could not create OpikTracer: {exc}")
-        return None
+    return _opik_tracer
+
+
+def flush_traces():
+    """Flush pending traces immediately.
+
+    Call this after a query in Streamlit to ensure traces are sent before
+    the script re-runs. Safe to call even when tracing is disabled.
+    """
+    if _opik_tracer is not None:
+        try:
+            _opik_tracer.flush()
+        except Exception as exc:
+            logger.debug(f"Opik flush failed: {exc}")
