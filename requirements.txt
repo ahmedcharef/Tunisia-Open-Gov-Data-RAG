@@ -29,4 +29,7 @@ pandas>=2.0.0
 openpyxl>=3.1.0
 
 # Hybrid search
+
+# Observability
+opik==2.2.44
 rank-bm25==0.2.2

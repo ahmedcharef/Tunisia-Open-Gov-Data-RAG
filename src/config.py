@@ -116,6 +116,17 @@ class Config:
         "GAFSA", "TOZEUR", "KÉBILI",
     ]
 
+    # ====================== OPIK / OBSERVABILITY ======================
+    OPIK_API_KEY: Optional[str] = os.getenv("OPIK_API_KEY")
+    OPIK_PROJECT_NAME: str = os.getenv("OPIK_PROJECT_NAME", "tunisia-rag")
+    OPIK_WORKSPACE: Optional[str] = os.getenv("OPIK_WORKSPACE")
+    # Set to "false" to disable tracing (e.g. in CI or local dev without an account)
+    OPIK_ENABLED: bool = os.getenv("OPIK_ENABLED", "true").strip().lower() != "false"
+    # Set to "true" to use a self-hosted local Opik instance instead of Comet cloud
+    OPIK_USE_LOCAL: bool = os.getenv("OPIK_USE_LOCAL", "false").strip().lower() == "true"
+    # Local Opik server URL (only used when OPIK_USE_LOCAL=true)
+    OPIK_URL_OVERRIDE: Optional[str] = os.getenv("OPIK_URL_OVERRIDE")
+
     # ====================== EMBEDDINGS ======================
     EMBEDDING_MODEL: str = "intfloat/multilingual-e5-large"
 
