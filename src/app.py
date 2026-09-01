@@ -20,6 +20,29 @@ from src.retriever import get_governorate_breakdown, get_vectorstore_stats, get_
 
 load_dotenv()
 
+# ====================== PHOENIX / OPENINFERENCE TRACING ======================
+if Config.PHOENIX_ENABLED:
+    try:
+        from phoenix.otel import register
+        from openinference.instrumentation.langchain import LangChainInstrumentor
+
+        _register_kwargs = {"project_name": Config.PHOENIX_PROJECT_NAME}
+        if Config.PHOENIX_API_KEY:
+            _register_kwargs["api_key"] = Config.PHOENIX_API_KEY
+        if Config.PHOENIX_COLLECTOR_ENDPOINT:
+            _register_kwargs["endpoint"] = Config.PHOENIX_COLLECTOR_ENDPOINT
+
+        tracer_provider = register(**_register_kwargs)
+        LangChainInstrumentor().instrument(tracer_provider=tracer_provider)
+
+        import logging
+        logging.getLogger("tunisia-rag").info(
+            f"Phoenix tracing enabled | project='{Config.PHOENIX_PROJECT_NAME}'"
+        )
+    except Exception as exc:
+        import logging
+        logging.getLogger("tunisia-rag").warning(f"Phoenix init failed — tracing disabled: {exc}")
+
 st.set_page_config(
     page_title="🇹🇳 Tunisia Multi-Dataset RAG",
     page_icon="🎓",

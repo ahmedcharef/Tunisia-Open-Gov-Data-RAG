@@ -127,6 +127,14 @@ class Config:
     # Local Opik server URL (only used when OPIK_USE_LOCAL=true)
     OPIK_URL_OVERRIDE: Optional[str] = os.getenv("OPIK_URL_OVERRIDE")
 
+    # ====================== PHOENIX / OBSERVABILITY ======================
+    PHOENIX_ENABLED: bool = os.getenv("PHOENIX_ENABLED", "true").strip().lower() != "false"
+    PHOENIX_PROJECT_NAME: str = os.getenv("PHOENIX_PROJECT_NAME", "tunisia-rag")
+    # Optional API key — only needed for Phoenix cloud (app.phoenix.arize.com)
+    PHOENIX_API_KEY: Optional[str] = os.getenv("PHOENIX_API_KEY")
+    # Collector endpoint — defaults to local Phoenix server if not set
+    PHOENIX_COLLECTOR_ENDPOINT: Optional[str] = os.getenv("PHOENIX_COLLECTOR_ENDPOINT")
+
     # ====================== EMBEDDINGS ======================
     EMBEDDING_MODEL: str = "intfloat/multilingual-e5-large"
 

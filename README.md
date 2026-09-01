@@ -8,6 +8,8 @@
   <img src="https://img.shields.io/badge/VectorDB-ChromaDB-green?style=flat-square" alt="Chroma">
   <img src="https://img.shields.io/badge/Embeddings-multilingual--e5--large-purple?style=flat-square" alt="Embeddings">
   <img src="https://img.shields.io/badge/LLM-OpenRouter-important?style=flat-square" alt="OpenRouter">
+  <img src="https://img.shields.io/badge/Tracing-Arize%20Phoenix-blueviolet?style=flat-square" alt="Phoenix">
+  <img src="https://img.shields.io/badge/Tracing-Opik%20%2F%20Comet-ff69b4?style=flat-square" alt="Opik">
 </p>
 
 ## ✨ Features
@@ -44,6 +46,8 @@ tunisia-rag/
 ├── .env                     # API keys (git-ignored)
 ├── .env.example
 ├── requirements.txt
+├── OPIK.md                  # Opik / Comet observability setup guide
+├── PHOENIX.md               # Arize Phoenix observability setup guide
 └── README.md
 ```
 
@@ -242,6 +246,13 @@ RAGService.query()              ← src/rag_service.py
     │
     └─ format_source_citation() ← src/utils.py
 ```
+
+## 🔭 Observability
+
+The project ships with two tracing backends that run side-by-side.
+
+- **Arize Phoenix** — local zero-config tracing with a full span tree (retrieval, LLM, token counts, latency). See [PHOENIX.md](PHOENIX.md) for setup.
+- **Opik / Comet** — cloud tracing with Agent Playground support. See [OPIK.md](OPIK.md) for setup.
 
 ## Data Sources
 
